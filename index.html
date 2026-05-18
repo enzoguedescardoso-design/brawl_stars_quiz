@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚡ Brawl Quiz Legends</title>
+<style>
+/* ======================== ROOT VARIABLES ======================== */
+:root {
+  --gold: #FFD700;
+  --gold-dark: #B8860B;
+  --orange: #FF6B35;
+  --red: #FF3860;
+  --purple: #9B59B6;
+  --blue: #3498DB;
+  --green: #2ECC71;
+  --cyan: #00D4FF;
+  --bg-dark: #0A0A1A;
+  --bg-mid: #12122A;
+  --bg-card: #1A1A3A;
+  --bg-card2: #22224A;
+  --text-bright: #FFFFFF;
+  --text-dim: #8888BB;
+  --border-glow: rgba(255,215,0,0.3);
+  --shadow-gold: 0 0 20px rgba(255,215,0,0.4);
+  --shadow-red: 0 0 20px rgba(255,56,96,0.6);
+  --shadow-blue: 0 0 20px rgba(0,212,255,0.4);
+  --rank-iniciante: #78909C;
+  --rank-casual: #66BB6A;
+  --rank-competidor: #42A5F5;
+  --rank-veterano: #AB47BC;
+  --rank-pro: #FF7043;
+  --rank-mestre: #EF5350;
+  --rank-lenda: #FFD700;
+  --rank-absoluta: linear-gradient(135deg,#FFD700,#FF6B35,#FF3860,#9B59B6);
+  --font-title: 'Georgia', serif;
+  --font-body: 'Trebuchet MS', sans-serif;
+  --anim: 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+/* ======================== RESET & BASE ======================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-dark);font-family:var(--font-body);color:var(--text-bright);}
+body{display:flex;align-items:center;justify-content:center;}
+button{cursor:pointer;border:none;outline:none;font-family:var(--font-body);}
+input{outline:none;font-family:var(--font-body);}
+/* ======================== SCROLLBAR ======================== */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg-mid);}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+/* ======================== GAME WRAPPER ======================== */
+#gameWrapper {
+  width:100%;max-width:480px;height:100vh;
+  position:relative;overflow:hidden;
+  background:var(--bg-dark);
+}
+/* ======================== SCREENS ======================== */
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;
+  overflow-y:auto;overflow-x:hidden;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.4s ease,transform 0.4s ease;
+  transform:translateY(20px);
+  padding-bottom:20px;
+}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
+/* ======================== ANIMATED BACKGROUND ======================== */
+.animated-bg{
+  position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 20% 20%, #1a0a3a 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 80%, #0a1a3a 0%, transparent 60%),
+             var(--bg-dark);
+  overflow:hidden;
+}
+.animated-bg::before{
+  content:'';position:absolute;inset:-50%;
+  background:repeating-conic-gradient(rgba(255,215,0,0.03) 0deg, transparent 1deg, transparent 60deg);
+  animation:rotateBg 60s linear infinite;
+}
+.particle{
+  position:absolute;border-radius:50%;
+  animation:particleFloat linear infinite;
+  pointer-events:none;
+}
+@keyframes rotateBg{to{transform:rotate(360deg);}}
+@keyframes particleFloat{
+  0%{transform:translateY(100vh) scale(0);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:0.5;}
+  100%{transform:translateY(-20vh) scale(1);opacity:0;}
+}
+/* ======================== LOADING SCREEN ======================== */
+#loadingScreen{
+  background:var(--bg-dark);z-index:100;
+  justify-content:center;gap:30px;
+}
+.loading-logo{
+  font-family:var(--font-title);font-size:clamp(28px,8vw,48px);
+  font-weight:900;text-align:center;letter-spacing:2px;
+  background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3860);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none;
+  filter:drop-shadow(0 0 20px rgba(255,107,53,0.8));
+  animation:logoPulse 2s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%,100%{filter:drop-shadow(0 0 20px rgba(255,107,53,0.8));}
+  50%{filter:drop-shadow(0 0 40px rgba(255,215,0,1));}
+}
+.loading-subtitle{color:var(--text-dim);font-size:14px;text-align:center;letter-spacing:1px;}
+.loading-bar-wrap{
+  width:80%;max-width:300px;height:12px;
+  background:rgba(255,255,255,0.1);border-radius:10px;
+  overflow:hidden;border:1px solid rgba(255,215,0,0.3);
+}
+.loading-bar{
+  height:100%;width:0%;border-radius:10px;
+  background:linear-gradient(90deg,#FFD700,#FF6B35,#FF3860);
+  transition:width 0.3s ease;
+  box-shadow:0 0 15px rgba(255,107,53,0.8);
+}
+.loading-text{color:var(--text-dim);font-size:12px;text-align:center;letter-spacing:0.5px;}
+/* ======================== PROFILE SETUP ======================== */
+#profileSetup{
+  background:linear-gradient(180deg,var(--bg-dark),var(--bg-mid));
+  z-index:90;justify-content:flex-start;padding-top:40px;gap:20px;
+}
+.setup-title{
+  font-family:var(--font-title);font-size:clamp(22px,6vw,32px);
+  font-weight:900;
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center;padding:0 20px;
+}
+.setup-subtitle{color:var(--text-dim);font-size:13px;text-align:center;}
+.avatar-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:10px;padding:0 20px;width:100%;
+}
+.avatar-btn{
+  aspect-ratio:1;border-radius:12px;font-size:clamp(20px,5vw,28px);
+  background:var(--bg-card);border:2px solid transparent;
+  transition:all var(--anim);display:flex;align-items:center;justify-content:center;
+}
+.avatar-btn:hover,.avatar-btn.selected{
+  border-color:var(--gold);background:var(--bg-card2);
+  transform:scale(1.1);box-shadow:var(--shadow-gold);
+}
+.input-group{display:flex;flex-direction:column;gap:8px;width:100%;padding:0 20px;}
+.input-group label{color:var(--gold);font-size:13px;font-weight:700;letter-spacing:1px;}
+.input-group input{
+  background:var(--bg-card);border:2px solid rgba(255,215,0,0.2);
+  border-radius:12px;padding:14px 16px;
+  color:var(--text-bright);font-size:16px;
+  transition:border-color 0.3s;width:100%;
+}
+.input-group input:focus{border-color:var(--gold);}
+/* ======================== BUTTONS ======================== */
+.btn-primary{
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  border:none;border-radius:14px;padding:16px 32px;
+  font-size:16px;font-weight:900;color:#1A0A00;
+  letter-spacing:1px;text-transform:uppercase;
+  box-shadow:0 4px 20px rgba(255,107,53,0.5);
+  transition:all var(--anim);width:calc(100% - 40px);
+}
+.btn-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 30px rgba(255,107,53,0.7);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-secondary{
+  background:var(--bg-card);border:2px solid rgba(255,215,0,0.3);
+  border-radius:14px;padding:12px 24px;
+  font-size:14px;font-weight:700;color:var(--gold);
+  letter-spacing:1px;text-transform:uppercase;
+  transition:all var(--anim);
+}
+.btn-secondary:hover{border-color:var(--gold);background:var(--bg-card2);box-shadow:var(--shadow-gold);}
+.btn-danger{
+  background:linear-gradient(135deg,#FF3860,#9B1A35);
+  border:none;border-radius:12px;padding:12px 24px;
+  font-size:13px;font-weight:700;color:#fff;
+  transition:all var(--anim);
+}
+.btn-danger:hover{transform:scale(1.03);box-shadow:var(--shadow-red);}
+/* ======================== MENU PRINCIPAL ======================== */
+#mainMenu{
+  justify-content:flex-start;padding-top:0;
+}
+.menu-header{
+  width:100%;background:linear-gradient(180deg,rgba(10,10,26,0.95),transparent);
+  padding:20px 20px 30px;position:sticky;top:0;z-index:10;
+}
+.profile-card{
+  background:var(--bg-card);border-radius:20px;
+  border:1px solid rgba(255,215,0,0.2);
+  padding:16px;display:flex;align-items:center;gap:14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+}
+.profile-avatar{
+  width:56px;height:56px;border-radius:14px;
+  background:var(--bg-card2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-shrink:0;
+  box-shadow:var(--shadow-gold);
+}
+.profile-info{flex:1;min-width:0;}
+.profile-name{font-size:16px;font-weight:900;color:var(--text-bright);truncate:ellipsis;}
+.profile-rank-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
+  letter-spacing:0.5px;margin-top:3px;
+}
+.xp-bar-wrap{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:8px;overflow:hidden;}
+.xp-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--orange));transition:width 0.5s ease;}
+.profile-xp-text{font-size:11px;color:var(--text-dim);margin-top:3px;}
+.menu-title{
+  font-family:var(--font-title);font-size:clamp(24px,7vw,36px);
+  font-weight:900;text-align:center;
+  background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3860);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 2px 10px rgba(255,107,53,0.5));
+  padding:10px 20px 0;
+}
+.menu-subtitle{color:var(--text-dim);font-size:12px;text-align:center;padding:0 20px;}
+.menu-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  padding:0 20px;width:100%;
+}
+.stat-card{
+  background:var(--bg-card);border-radius:14px;
+  border:1px solid rgba(255,255,255,0.05);
+  padding:12px 8px;text-align:center;
+}
+.stat-num{font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--gold);}
+.stat-label{font-size:10px;color:var(--text-dim);letter-spacing:0.5px;text-transform:uppercase;}
+.menu-buttons{
+  display:flex;flex-direction:column;gap:10px;
+  padding:0 20px;width:100%;
+}
+.menu-btn{
+  background:var(--bg-card);border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;
+  transition:all var(--anim);text-align:left;
+  position:relative;overflow:hidden;
+}
+.menu-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent,rgba(255,215,0,0.05));
+  opacity:0;transition:opacity 0.3s;
+}
+.menu-btn:hover::before{opacity:1;}
+.menu-btn:hover{border-color:rgba(255,215,0,0.3);transform:translateX(4px);box-shadow:var(--shadow-gold);}
+.menu-btn-icon{font-size:28px;flex-shrink:0;}
+.menu-btn-text{flex:1;}
+.menu-btn-title{font-size:16px;font-weight:800;color:var(--text-bright);}
+.menu-btn-desc{font-size:11px;color:var(--text-dim);}
+.menu-btn-arrow{color:var(--text-dim);font-size:18px;}
+/* ======================== DIFFICULTY SELECT ======================== */
+#difficultySelect{padding-top:50px;gap:20px;}
+.screen-header{
+  display:flex;align-items:center;gap:10px;
+  padding:15px 20px;width:100%;
+}
+.back-btn{
+  background:var(--bg-card);border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;width:40px;height:40px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--text-bright);flex-shrink:0;
+  transition:all 0.2s;
+}
+.back-btn:hover{background:var(--bg-card2);border-color:var(--gold);}
+.screen-title{
+  font-family:var(--font-title);font-size:clamp(20px,5vw,28px);
+  font-weight:900;
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.diff-card{
+  background:var(--bg-card);border-radius:20px;
+  border:2px solid transparent;padding:20px;
+  width:calc(100% - 40px);cursor:pointer;
+  transition:all var(--anim);position:relative;overflow:hidden;
+}
+.diff-card::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  transition:opacity 0.3s;
+}
+.diff-easy::before{background:linear-gradient(135deg,rgba(46,204,113,0.1),transparent);}
+.diff-medium::before{background:linear-gradient(135deg,rgba(255,215,0,0.1),transparent);}
+.diff-hard::before{background:linear-gradient(135deg,rgba(255,56,96,0.1),transparent);}
+.diff-card:hover::before{opacity:1;}
+.diff-easy:hover{border-color:#2ECC71;box-shadow:0 0 20px rgba(46,204,113,0.4);}
+.diff-medium:hover{border-color:#FFD700;box-shadow:var(--shadow-gold);}
+.diff-hard:hover{border-color:#FF3860;box-shadow:var(--shadow-red);}
+.diff-card:hover{transform:scale(1.02);}
+.diff-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.diff-icon{font-size:36px;}
+.diff-name{font-size:20px;font-weight:900;}
+.diff-easy .diff-name{color:#2ECC71;}
+.diff-medium .diff-name{color:#FFD700;}
+.diff-hard .diff-name{color:#FF3860;}
+.diff-count{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.diff-desc{font-size:13px;color:var(--text-dim);line-height:1.5;}
+.diff-stars{display:flex;gap:4px;margin-top:10px;}
+.star{font-size:16px;}
+/* ======================== QUIZ SCREEN ======================== */
+#quizScreen{padding:0;gap:0;}
+.quiz-top{
+  width:100%;background:var(--bg-mid);
+  padding:15px 15px 10px;position:sticky;top:0;z-index:5;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.quiz-progress-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.quiz-progress-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;}
+.quiz-progress-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),var(--orange));transition:width 0.5s ease;}
+.quiz-counter{font-size:12px;color:var(--text-dim);white-space:nowrap;}
+.quiz-info-row{display:flex;justify-content:space-between;align-items:center;}
+.quiz-xp-badge{
+  background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);
+  border-radius:20px;padding:4px 12px;font-size:12px;color:var(--gold);font-weight:700;
+}
+.quiz-combo{
+  font-size:12px;color:var(--orange);font-weight:700;
+  animation:comboBounce 0.5s ease;display:none;
+}
+.quiz-combo.show{display:block;}
+@keyframes comboBounce{0%{transform:scale(1.5);}100%{transform:scale(1);}}
+.quiz-timer{
+  background:rgba(255,56,96,0.15);border:1px solid rgba(255,56,96,0.3);
+  border-radius:20px;padding:4px 12px;font-size:12px;color:#FF3860;font-weight:700;
+}
+.question-wrap{
+  width:100%;padding:20px 15px;
+}
+.question-diff-tag{
+  display:inline-block;padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.tag-easy{background:rgba(46,204,113,0.2);color:#2ECC71;border:1px solid rgba(46,204,113,0.4);}
+.tag-medium{background:rgba(255,215,0,0.2);color:#FFD700;border:1px solid rgba(255,215,0,0.4);}
+.tag-hard{background:rgba(255,56,96,0.2);color:#FF3860;border:1px solid rgba(255,56,96,0.4);}
+.question-text{
+  font-size:clamp(14px,4vw,18px);font-weight:700;
+  color:var(--text-bright);line-height:1.5;
+  background:var(--bg-card);border-radius:16px;
+  padding:18px;border:1px solid rgba(255,255,255,0.05);
+  margin-bottom:16px;
+}
+.options-grid{display:flex;flex-direction:column;gap:10px;padding:0 15px;}
+.option-btn{
+  background:var(--bg-card);border:2px solid rgba(255,255,255,0.08);
+  border-radius:14px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  transition:all 0.2s;text-align:left;width:100%;
+}
+.option-letter{
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:var(--text-dim);
+  flex-shrink:0;transition:all 0.2s;
+}
+.option-text{font-size:clamp(13px,3.5vw,15px);color:var(--text-bright);font-weight:600;line-height:1.3;}
+.option-btn:hover:not(:disabled){
+  border-color:rgba(255,215,0,0.4);background:var(--bg-card2);
+  transform:translateX(4px);
+}
+.option-btn:hover:not(:disabled) .option-letter{
+  background:rgba(255,215,0,0.2);color:var(--gold);
+}
+.option-btn.correct{
+  border-color:#2ECC71!important;background:rgba(46,204,113,0.15)!important;
+  animation:correctPulse 0.5s ease;
+}
+.option-btn.correct .option-letter{background:#2ECC71;color:#000;}
+.option-btn.wrong{
+  border-color:#FF3860!important;background:rgba(255,56,96,0.15)!important;
+  animation:wrongShake 0.4s ease;
+}
+.option-btn.wrong .option-letter{background:#FF3860;color:#fff;}
+@keyframes correctPulse{0%{transform:scale(1);}50%{transform:scale(1.03);}100%{transform:scale(1);}}
+@keyframes wrongShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.quiz-bottom{padding:15px;width:100%;}
+.next-btn{
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  border:none;border-radius:14px;padding:16px;
+  font-size:16px;font-weight:900;color:#1A0A00;
+  width:100%;display:none;transition:all var(--anim);
+}
+.next-btn.show{display:block;animation:slideUp 0.3s ease;}
+.next-btn:hover{transform:scale(1.02);box-shadow:0 8px 25px rgba(255,107,53,0.5);}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+/* ======================== RESULT SCREEN ======================== */
+#resultScreen{padding:0;justify-content:flex-start;}
+.result-header{
+  width:100%;padding:40px 20px 20px;text-align:center;
+  background:linear-gradient(180deg,var(--bg-mid),transparent);
+}
+.result-score-circle{
+  width:140px;height:140px;border-radius:50%;
+  background:var(--bg-card);border:4px solid var(--gold);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  box-shadow:var(--shadow-gold),inset 0 0 30px rgba(255,215,0,0.1);
+  animation:scaleIn 0.6s var(--anim);
+}
+@keyframes scaleIn{from{transform:scale(0);}to{transform:scale(1);}}
+.result-pct{font-size:42px;font-weight:900;color:var(--gold);}
+.result-pct-label{font-size:11px;color:var(--text-dim);}
+.result-title{
+  font-family:var(--font-title);font-size:clamp(22px,6vw,32px);font-weight:900;
+  margin-bottom:8px;
+}
+.result-subtitle{color:var(--text-dim);font-size:14px;}
+.result-stats{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  padding:0 20px;width:100%;margin-top:20px;
+}
+.res-stat{
+  background:var(--bg-card);border-radius:14px;padding:14px;
+  border:1px solid rgba(255,255,255,0.05);text-align:center;
+}
+.res-stat-num{font-size:clamp(20px,5vw,28px);font-weight:900;}
+.res-stat-label{font-size:11px;color:var(--text-dim);margin-top:4px;}
+.result-actions{
+  display:flex;flex-direction:column;gap:10px;
+  padding:20px;width:100%;
+}
+/* ======================== XP FLOAT ANIMATION ======================== */
+.xp-float{
+  position:fixed;font-size:18px;font-weight:900;color:var(--gold);
+  pointer-events:none;z-index:1000;
+  text-shadow:0 0 10px rgba(255,215,0,0.8);
+  animation:xpFloatAnim 1.5s ease-out forwards;
+}
+@keyframes xpFloatAnim{
+  0%{transform:translateY(0) scale(1);opacity:1;}
+  100%{transform:translateY(-100px) scale(1.5);opacity:0;}
+}
+/* ======================== LEVEL UP OVERLAY ======================== */
+.levelup-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;animation:fadeIn 0.3s ease;
+}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.levelup-text{
+  font-family:var(--font-title);font-size:clamp(32px,9vw,56px);
+  font-weight:900;text-align:center;
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:levelBounce 0.5s var(--anim);
+}
+@keyframes levelBounce{from{transform:scale(0) rotate(-10deg);}to{transform:scale(1) rotate(0);}  }
+.levelup-stars{font-size:40px;animation:spin 1s ease;}
+@keyframes spin{from{transform:rotate(-180deg) scale(0);}to{transform:rotate(0) scale(1);}}
+/* ======================== ABSOLUTE LEGEND OVERLAY ======================== */
+.legend-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,0.95);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;padding:30px;text-align:center;
+  animation:fadeIn 0.5s ease;
+}
+.legend-title{
+  font-family:var(--font-title);font-size:clamp(20px,6vw,32px);
+  font-weight:900;color:var(--gold);
+  animation:legendGlow 2s ease-in-out infinite;
+  line-height:1.3;
+}
+@keyframes legendGlow{
+  0%,100%{text-shadow:0 0 20px rgba(255,215,0,0.8);}
+  50%{text-shadow:0 0 60px rgba(255,215,0,1),0 0 100px rgba(255,107,53,0.8);}
+}
+.legend-icon{font-size:80px;animation:iconFloat 3s ease-in-out infinite;}
+@keyframes iconFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);}}
+.legend-question{
+  background:rgba(255,215,0,0.08);border:2px solid rgba(255,215,0,0.4);
+  border-radius:20px;padding:24px;
+  font-size:clamp(14px,4vw,18px);font-weight:700;
+  color:var(--text-bright);line-height:1.6;
+  box-shadow:0 0 40px rgba(255,215,0,0.2);
+}
+.legend-options{display:flex;flex-direction:column;gap:10px;width:100%;}
+.legend-opt{
+  background:rgba(255,255,255,0.05);border:2px solid rgba(255,215,0,0.2);
+  border-radius:14px;padding:14px 20px;
+  font-size:14px;font-weight:700;color:var(--text-bright);
+  transition:all 0.2s;display:flex;align-items:center;gap:10px;
+}
+.legend-opt:hover:not(:disabled){border-color:var(--gold);background:rgba(255,215,0,0.1);}
+.legend-opt-letter{font-size:16px;font-weight:900;color:var(--gold);}
+.legend-opt.correct{border-color:#2ECC71!important;background:rgba(46,204,113,0.2)!important;}
+.legend-opt.wrong{border-color:#FF3860!important;background:rgba(255,56,96,0.2)!important;}
+.legend-result-title{
+  font-family:var(--font-title);font-size:clamp(24px,7vw,40px);
+  font-weight:900;
+}
+.legend-result-correct{
+  background:linear-gradient(135deg,#FFD700,#FF6B35);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:legendGlow 1s ease-in-out infinite;
+}
+/* ======================== ACHIEVEMENTS ======================== */
+.achievement-popup{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);
+  z-index:800;background:var(--bg-card2);border-radius:16px;
+  border:2px solid var(--gold);padding:14px 20px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow-gold);min-width:280px;
+  transition:transform 0.4s var(--anim);
+}
+.achievement-popup.show{transform:translateX(-50%) translateY(0);}
+.ach-icon{font-size:32px;}
+.ach-info{}
+.ach-label{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.ach-name{font-size:14px;font-weight:800;color:var(--text-bright);}
+/* ======================== SCREENS — PROFILE, SETTINGS etc ======================== */
+#profileScreen,#settingsScreen,#rankingScreen,#achievementsScreen,#minigamesMenu,#minigame1,#minigame2,#minigame3{
+  padding:0;justify-content:flex-start;
+}
+.scrollable-content{
+  width:100%;padding:0 20px 30px;display:flex;flex-direction:column;gap:14px;
+}
+.section-title{
+  font-size:14px;font-weight:700;color:var(--gold);
+  letter-spacing:1px;text-transform:uppercase;margin-top:6px;
+}
+.profile-big-avatar{
+  width:90px;height:90px;border-radius:20px;
+  background:var(--bg-card2);border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:50px;box-shadow:var(--shadow-gold);
+  margin:0 auto;
+}
+.profile-stats-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  width:100%;
+}
+.profile-stat-card{
+  background:var(--bg-card);border-radius:14px;padding:14px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.profile-stat-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;}
+.profile-stat-val{font-size:clamp(18px,5vw,24px);font-weight:900;color:var(--text-bright);margin-top:4px;}
+.history-item{
+  background:var(--bg-card);border-radius:12px;padding:12px 14px;
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-diff{font-size:12px;font-weight:700;}
+.history-score{font-size:14px;font-weight:800;color:var(--text-bright);}
+.history-date{font-size:10px;color:var(--text-dim);}
+/* ======================== TOGGLE ======================== */
+.toggle-row{
+  background:var(--bg-card);border-radius:14px;padding:16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.toggle-label{font-size:14px;font-weight:700;color:var(--text-bright);}
+.toggle-desc{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.toggle{
+  width:48px;height:26px;border-radius:13px;
+  background:rgba(255,255,255,0.1);position:relative;
+  transition:background 0.3s;cursor:pointer;flex-shrink:0;
+}
+.toggle.on{background:var(--gold);}
+.toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  transition:transform 0.3s;
+}
+.toggle.on::after{transform:translateX(22px);}
+/* ======================== RANKING TABLE ======================== */
+.ranking-item{
+  background:var(--bg-card);border-radius:14px;padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.rank-num{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;flex-shrink:0;
+}
+.rank-1{background:linear-gradient(135deg,#FFD700,#FF6B35);color:#000;}
+.rank-2{background:rgba(192,192,192,0.3);color:#C0C0C0;}
+.rank-3{background:rgba(205,127,50,0.3);color:#CD7F32;}
+.rank-other{background:rgba(255,255,255,0.05);color:var(--text-dim);}
+.ranking-name{flex:1;font-size:14px;font-weight:700;}
+.ranking-xp{font-size:14px;font-weight:900;color:var(--gold);}
+/* ======================== ACHIEVEMENTS GRID ======================== */
+.achievements-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+}
+.ach-card{
+  background:var(--bg-card);border-radius:14px;padding:14px;
+  border:1px solid rgba(255,255,255,0.05);text-align:center;
+  transition:all 0.2s;
+}
+.ach-card.unlocked{border-color:rgba(255,215,0,0.4);box-shadow:var(--shadow-gold);}
+.ach-card.locked{opacity:0.4;filter:grayscale(1);}
+.ach-card-icon{font-size:32px;margin-bottom:8px;}
+.ach-card-name{font-size:12px;font-weight:700;color:var(--text-bright);}
+.ach-card-desc{font-size:10px;color:var(--text-dim);margin-top:4px;}
+/* ======================== MINIGAMES ======================== */
+.minigame-card{
+  background:var(--bg-card);border-radius:20px;
+  border:1px solid rgba(255,255,255,0.05);
+  padding:20px;width:calc(100% - 40px);cursor:pointer;
+  transition:all var(--anim);position:relative;overflow:hidden;
+}
+.minigame-card:hover{transform:scale(1.02);border-color:rgba(255,215,0,0.3);}
+.minigame-card-icon{font-size:48px;margin-bottom:10px;}
+.minigame-card-title{font-size:18px;font-weight:900;color:var(--text-bright);}
+.minigame-card-desc{font-size:13px;color:var(--text-dim);margin-top:6px;line-height:1.5;}
+/* ======================== MINIGAME 1 — QUICK CHOICE ======================== */
+.mg1-question{
+  background:var(--bg-card);border-radius:16px;padding:20px;
+  font-size:clamp(14px,4vw,18px);font-weight:700;
+  color:var(--text-bright);line-height:1.5;
+  text-align:center;width:calc(100% - 40px);
+}
+.mg1-options{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px;padding:0 20px;width:100%;
+}
+.mg1-opt{
+  background:var(--bg-card);border:2px solid rgba(255,255,255,0.08);
+  border-radius:14px;padding:16px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:all 0.2s;cursor:pointer;font-size:24px;
+}
+.mg1-opt-name{font-size:12px;font-weight:700;color:var(--text-bright);text-align:center;}
+.mg1-opt:hover:not(:disabled){border-color:rgba(255,215,0,0.4);transform:scale(1.05);}
+.mg1-opt.correct{border-color:#2ECC71;background:rgba(46,204,113,0.2);}
+.mg1-opt.wrong{border-color:#FF3860;background:rgba(255,56,96,0.2);}
+.mg1-timer-bar{
+  width:calc(100% - 40px);height:10px;
+  background:rgba(255,255,255,0.1);border-radius:5px;overflow:hidden;
+}
+.mg1-timer-fill{
+  height:100%;border-radius:5px;
+  background:linear-gradient(90deg,#2ECC71,#FFD700,#FF3860);
+  transition:width 0.1s linear;
+}
+.mg-score-display{
+  font-size:clamp(36px,10vw,56px);font-weight:900;
+  color:var(--gold);text-align:center;
+  text-shadow:0 0 20px rgba(255,215,0,0.5);
+}
+.mg-score-label{font-size:12px;color:var(--text-dim);text-align:center;}
+/* ======================== MINIGAME 2 — BATTLE ======================== */
+.vs-container{
+  display:flex;align-items:center;justify-content:center;
+  gap:16px;padding:0 20px;width:100%;
+}
+.vs-brawler{
+  flex:1;background:var(--bg-card);border-radius:20px;
+  border:2px solid transparent;padding:20px 14px;
+  text-align:center;cursor:pointer;
+  transition:all var(--anim);
+}
+.vs-brawler:hover:not(:disabled){border-color:rgba(255,215,0,0.4);transform:scale(1.04);}
+.vs-brawler.winner{border-color:#2ECC71;background:rgba(46,204,113,0.15);}
+.vs-brawler.loser{border-color:#FF3860;background:rgba(255,56,96,0.15);opacity:0.6;}
+.vs-emoji{font-size:clamp(40px,12vw,64px);}
+.vs-name{font-size:14px;font-weight:800;color:var(--text-bright);margin-top:8px;}
+.vs-stat{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.vs-sep{font-size:clamp(24px,7vw,36px);font-weight:900;color:var(--red);flex-shrink:0;}
+.battle-question{
+  background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);
+  border-radius:14px;padding:14px 20px;
+  font-size:14px;font-weight:700;color:var(--gold);
+  text-align:center;margin:0 20px;
+}
+/* ======================== MINIGAME 3 — MEMORY ======================== */
+.memory-grid{
+  display:grid;gap:8px;padding:0 20px;width:100%;
+}
+.memory-card{
+  aspect-ratio:1;border-radius:12px;
+  background:var(--bg-card);border:2px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(20px,6vw,32px);cursor:pointer;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.memory-card::before{
+  content:'❓';position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(20px,6vw,32px);
+  background:var(--bg-card);transition:opacity 0.3s;
+}
+.memory-card.revealed::before{opacity:0;}
+.memory-card.matched{
+  border-color:#2ECC71;background:rgba(46,204,113,0.15);
+  animation:matchPop 0.4s var(--anim);
+}
+@keyframes matchPop{0%{transform:scale(0.8);}100%{transform:scale(1);}}
+.memory-card.flipped::before{opacity:0;}
+/* ======================== SCREEN SHAKE ======================== */
+.shake{animation:screenShake 0.5s ease;}
+@keyframes screenShake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-8px);}
+  40%{transform:translateX(8px);}
+  60%{transform:translateX(-5px);}
+  80%{transform:translateX(5px);}
+}
+/* ======================== CREDITS ======================== */
+#creditsScreen{padding:30px 20px;gap:20px;text-align:center;}
+.credits-logo{
+  font-family:var(--font-title);font-size:clamp(28px,8vw,40px);
+  font-weight:900;
+  background:linear-gradient(135deg,#FFD700,#FF6B35,#FF3860);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.credits-text{font-size:13px;color:var(--text-dim);line-height:2;text-align:center;}
+/* ======================== CONFIRM MODAL ======================== */
+.modal-overlay{
+  position:fixed;inset:0;z-index:700;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-box{
+  background:var(--bg-card2);border-radius:20px;
+  border:2px solid rgba(255,56,96,0.4);
+  padding:28px 24px;width:100%;max-width:340px;
+  text-align:center;animation:scaleIn 0.3s var(--anim);
+  box-shadow:var(--shadow-red);
+}
+.modal-title{font-size:20px;font-weight:900;color:#FF3860;margin-bottom:10px;}
+.modal-text{font-size:14px;color:var(--text-dim);margin-bottom:24px;line-height:1.5;}
+.modal-actions{display:flex;gap:10px;}
+.modal-actions button{flex:1;}
+/* ======================== FIREWORKS ======================== */
+.firework{
+  position:fixed;pointer-events:none;z-index:900;
+  border-radius:50%;animation:fireworkAnim 1s ease-out forwards;
+}
+@keyframes fireworkAnim{
+  0%{transform:scale(0);opacity:1;}
+  100%{transform:scale(1) translateY(-80px);opacity:0;}
+}
+/* ======================== RESPONSIVE ======================== */
+@media(max-width:380px){
+  .avatar-grid{grid-template-columns:repeat(4,1fr);}
+  .mg1-options{grid-template-columns:1fr;}
+}
+@media(min-width:600px){
+  #gameWrapper{border-radius:24px;box-shadow:0 20px 80px rgba(0,0,0,0.8);height:min(100vh,900px);}
+}
+</style>
+</head>
+<body>
+<div class="animated-bg" id="animBg"></div>
+<div id="gameWrapper">
+
+<!-- ═══════════════════ LOADING SCREEN ═══════════════════ -->
+<div class="screen active" id="loadingScreen">
+  <div class="loading-logo">⚡ Brawl Quiz<br>Legends</div>
+  <div class="loading-subtitle">O Quiz Definitivo de Brawl Stars</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loadBar"></div></div>
+  <div class="loading-text" id="loadText">Inicializando...</div>
+</div>
+
+<!-- ═══════════════════ PROFILE SETUP ═══════════════════ -->
+<div class="screen" id="profileSetup">
+  <div class="setup-title">⚡ Crie Seu Perfil</div>
+  <div class="setup-subtitle">Escolha um avatar e seu nome de jogador</div>
+  <div class="avatar-grid" id="avatarGrid"></div>
+  <div class="input-group">
+    <label>🎮 NOME DO JOGADOR</label>
+    <input type="text" id="playerNameInput" placeholder="Digite seu nome..." maxlength="18">
+  </div>
+  <button class="btn-primary" onclick="createProfile()">⚡ COMEÇAR JORNADA</button>
+</div>
+
+<!-- ═══════════════════ MAIN MENU ═══════════════════ -->
+<div class="screen" id="mainMenu">
+  <div class="menu-header">
+    <div class="profile-card">
+      <div class="profile-avatar" id="menuAvatar">🤠</div>
+      <div class="profile-info">
+        <div class="profile-name" id="menuName">Jogador</div>
+        <div class="profile-rank-badge" id="menuRankBadge">🔰 Iniciante</div>
+        <div class="xp-bar-wrap"><div class="xp-bar" id="menuXpBar" style="width:0%"></div></div>
+        <div class="profile-xp-text" id="menuXpText">0 / 100 XP • Nível 1</div>
+      </div>
+    </div>
+  </div>
+  <div class="menu-title">Brawl Quiz Legends</div>
+  <div class="menu-subtitle">Prove que você é uma LENDA</div>
+  <div class="menu-stats" style="padding:10px 20px;">
+    <div class="stat-card"><div class="stat-num" id="menuWins">0</div><div class="stat-label">Vitórias</div></div>
+    <div class="stat-card"><div class="stat-num" id="menuAccuracy">0%</div><div class="stat-label">Precisão</div></div>
+    <div class="stat-card"><div class="stat-num" id="menuXp">0</div><div class="stat-label">XP Total</div></div>
+  </div>
+  <div class="menu-buttons">
+    <button class="menu-btn" onclick="showScreen('difficultySelect')">
+      <span class="menu-btn-icon">⚔️</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">JOGAR QUIZ</div><div class="menu-btn-desc">Responda perguntas e suba de rank</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showScreen('minigamesMenu')">
+      <span class="menu-btn-icon">🎮</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">MINIGAMES</div><div class="menu-btn-desc">3 minigames épicos para jogar</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showProfileScreen()">
+      <span class="menu-btn-icon">👤</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">PERFIL</div><div class="menu-btn-desc">Veja suas estatísticas e histórico</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showScreen('achievementsScreen');renderAchievements()">
+      <span class="menu-btn-icon">🏅</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">CONQUISTAS</div><div class="menu-btn-desc">Veja todos os seus achievements</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showScreen('rankingScreen');renderRanking()">
+      <span class="menu-btn-icon">🌎</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">RANKING LOCAL</div><div class="menu-btn-desc">Os maiores jogadores deste dispositivo</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showScreen('settingsScreen')">
+      <span class="menu-btn-icon">⚙️</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">CONFIGURAÇÕES</div><div class="menu-btn-desc">Sons, animações e preferências</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+    <button class="menu-btn" onclick="showScreen('creditsScreen')">
+      <span class="menu-btn-icon">📜</span>
+      <div class="menu-btn-text"><div class="menu-btn-title">CRÉDITOS</div><div class="menu-btn-desc">Sobre o jogo</div></div>
+      <span class="menu-btn-arrow">›</span>
+    </button>
+  </div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ═══════════════════ DIFFICULTY SELECT ═══════════════════ -->
+<div class="screen" id="difficultySelect">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">Escolha a Dificuldade</div>
+  </div>
+  <div class="diff-card diff-easy" onclick="startQuiz('easy')">
+    <div class="diff-header">
+      <div class="diff-icon">🟢</div>
+      <div><div class="diff-name">FÁCIL</div><div class="diff-count">35 perguntas</div></div>
+    </div>
+    <div class="diff-desc">Perguntas básicas para quem está começando a explorar o mundo dos Brawlers. Perfeito para iniciantes!</div>
+    <div class="diff-stars"><span class="star">⭐</span><span class="star" style="opacity:.2">⭐</span><span class="star" style="opacity:.2">⭐</span></div>
+  </div>
+  <div class="diff-card diff-medium" onclick="startQuiz('medium')">
+    <div class="diff-header">
+      <div class="diff-icon">🟡</div>
+      <div><div class="diff-name">MÉDIO</div><div class="diff-count">34 perguntas</div></div>
+    </div>
+    <div class="diff-desc">Conhecimento real sobre mecânicas, super habilidades e dados dos brawlers. Para jogadores experientes.</div>
+    <div class="diff-stars"><span class="star">⭐</span><span class="star">⭐</span><span class="star" style="opacity:.2">⭐</span></div>
+  </div>
+  <div class="diff-card diff-hard" onclick="startQuiz('hard')">
+    <div class="diff-header">
+      <div class="diff-icon">🔴</div>
+      <div><div class="diff-name">DIFÍCIL</div><div class="diff-count">34 perguntas</div></div>
+    </div>
+    <div class="diff-desc">Apenas os verdadeiros mestres conseguem responder. Perguntas absurdamente difíceis sobre lore, datas e detalhes raros.</div>
+    <div class="diff-stars"><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ QUIZ SCREEN ═══════════════════ -->
+<div class="screen" id="quizScreen">
+  <div class="quiz-top">
+    <div class="quiz-progress-row">
+      <button class="back-btn" style="width:32px;height:32px;font-size:14px" onclick="confirmQuit()">✕</button>
+      <div class="quiz-progress-bar-wrap"><div class="quiz-progress-bar" id="quizProgressBar"></div></div>
+      <div class="quiz-counter" id="quizCounter">0/0</div>
+    </div>
+    <div class="quiz-info-row">
+      <div class="quiz-xp-badge" id="quizXpBadge">⭐ 0 XP</div>
+      <div class="quiz-combo" id="quizCombo">🔥 x0 COMBO!</div>
+      <div class="quiz-timer" id="quizTimer">⏱ --</div>
+    </div>
+  </div>
+  <div class="question-wrap">
+    <div class="question-diff-tag" id="questionDiffTag">FÁCIL</div>
+    <div class="question-text" id="questionText">Carregando pergunta...</div>
+  </div>
+  <div class="options-grid" id="optionsGrid"></div>
+  <div class="quiz-bottom">
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">PRÓXIMA ›</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ RESULT SCREEN ═══════════════════ -->
+<div class="screen" id="resultScreen">
+  <div class="result-header">
+    <div class="result-score-circle">
+      <div class="result-pct" id="resultPct">0%</div>
+      <div class="result-pct-label">precisão</div>
+    </div>
+    <div class="result-title" id="resultTitle">Fim de Jogo!</div>
+    <div class="result-subtitle" id="resultSubtitle"></div>
+  </div>
+  <div class="result-stats">
+    <div class="res-stat"><div class="res-stat-num" id="resCorrect" style="color:#2ECC71">0</div><div class="res-stat-label">✅ Acertos</div></div>
+    <div class="res-stat"><div class="res-stat-num" id="resWrong" style="color:#FF3860">0</div><div class="res-stat-label">❌ Erros</div></div>
+    <div class="res-stat"><div class="res-stat-num" id="resXp" style="color:var(--gold)">0</div><div class="res-stat-label">⭐ XP Ganho</div></div>
+    <div class="res-stat"><div class="res-stat-num" id="resCombo" style="color:var(--orange)">0</div><div class="res-stat-label">🔥 Maior Combo</div></div>
+  </div>
+  <div class="result-actions">
+    <button class="btn-primary" onclick="showScreen('difficultySelect')">🔄 JOGAR NOVAMENTE</button>
+    <button class="btn-secondary" onclick="showScreen('mainMenu')">🏠 MENU PRINCIPAL</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ PROFILE SCREEN ═══════════════════ -->
+<div class="screen" id="profileScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">Meu Perfil</div>
+  </div>
+  <div class="scrollable-content" id="profileContent"></div>
+</div>
+
+<!-- ═══════════════════ ACHIEVEMENTS ═══════════════════ -->
+<div class="screen" id="achievementsScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">🏅 Conquistas</div>
+  </div>
+  <div class="scrollable-content">
+    <div class="achievements-grid" id="achievementsGrid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ RANKING ═══════════════════ -->
+<div class="screen" id="rankingScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">🌎 Ranking Local</div>
+  </div>
+  <div class="scrollable-content" id="rankingContent"></div>
+</div>
+
+<!-- ═══════════════════ SETTINGS ═══════════════════ -->
+<div class="screen" id="settingsScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">⚙️ Configurações</div>
+  </div>
+  <div class="scrollable-content">
+    <div class="section-title">PREFERÊNCIAS</div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">🔊 Sons</div><div class="toggle-desc">Efeitos sonoros do jogo</div></div>
+      <div class="toggle" id="toggleSound" onclick="toggleSetting('sound')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">✨ Animações</div><div class="toggle-desc">Efeitos visuais e partículas</div></div>
+      <div class="toggle" id="toggleAnim" onclick="toggleSetting('anim')"></div>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">⏱ Timer</div><div class="toggle-desc">Temporizador nas perguntas</div></div>
+      <div class="toggle" id="toggleTimer" onclick="toggleSetting('timer')"></div>
+    </div>
+    <div class="section-title">CONTA</div>
+    <button class="btn-secondary" style="width:100%" onclick="confirmResetProfile()">🔄 Trocar Perfil</button>
+    <button class="btn-danger" style="width:100%" onclick="confirmResetAll()">💀 Resetar Tudo</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ CREDITS ═══════════════════ -->
+<div class="screen" id="creditsScreen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">📜 Créditos</div>
+  </div>
+  <div class="credits-logo">⚡ Brawl Quiz Legends</div>
+  <div class="credits-text">
+    🎮 Versão 1.0 — 2025<br>
+    Um quiz completo sobre todos os 104 Brawlers<br><br>
+    🏆 Desenvolvido com HTML, CSS & JavaScript puro<br><br>
+    🌟 Inspirado no universo épico de Brawl Stars<br>
+    da Supercell<br><br>
+    ⚡ Prove que você é uma LENDA ABSOLUTA!<br><br>
+    🎯 104 brawlers • 103 perguntas • 3 minigames<br>
+    🏅 Conquistas • Rankings • Sistema de XP
+  </div>
+  <button class="btn-secondary" onclick="showScreen('mainMenu')">🏠 Voltar ao Menu</button>
+</div>
+
+<!-- ═══════════════════ MINIGAMES MENU ═══════════════════ -->
+<div class="screen" id="minigamesMenu">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('mainMenu')">‹</button>
+    <div class="screen-title">🎮 Minigames</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px;padding:0 20px;width:100%">
+    <div class="minigame-card" onclick="startMg1()">
+      <div class="minigame-card-icon">⚡</div>
+      <div class="minigame-card-title">ESCOLHA RÁPIDA</div>
+      <div class="minigame-card-desc">Identifique o brawler correto antes que o tempo acabe! Dificuldade crescente e combo de respostas rápidas.</div>
+    </div>
+    <div class="minigame-card" onclick="startMg2()">
+      <div class="minigame-card-icon">🆚</div>
+      <div class="minigame-card-title">BATALHA DE BRAWLERS</div>
+      <div class="minigame-card-desc">Dois brawlers se enfrentam. Escolha o vencedor com base em dano, velocidade, HP ou alcance!</div>
+    </div>
+    <div class="minigame-card" onclick="startMg3()">
+      <div class="minigame-card-icon">🧩</div>
+      <div class="minigame-card-title">MEMÓRIA SUPREMA</div>
+      <div class="minigame-card-desc">Encontre os pares de brawlers usando sua memória. Tempo limitado e pontuação por velocidade!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MINIGAME 1 ═══════════════════ -->
+<div class="screen" id="minigame1">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('minigamesMenu')">‹</button>
+    <div class="screen-title">⚡ Escolha Rápida</div>
+  </div>
+  <div style="text-align:center;padding:0 20px;">
+    <div class="mg-score-display" id="mg1Score">0</div>
+    <div class="mg-score-label" id="mg1ScoreLabel">PONTOS • Combo: x1</div>
+  </div>
+  <div class="mg1-timer-bar"><div class="mg1-timer-fill" id="mg1TimerFill"></div></div>
+  <div class="mg1-question" id="mg1Question">Carregando...</div>
+  <div class="mg1-options" id="mg1Options"></div>
+  <div id="mg1Result" style="display:none;text-align:center;padding:20px;">
+    <div class="mg-score-display" id="mg1FinalScore">0</div>
+    <div class="mg-score-label">PONTUAÇÃO FINAL</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;width:100%">
+      <button class="btn-primary" onclick="startMg1()">🔄 Jogar Novamente</button>
+      <button class="btn-secondary" onclick="showScreen('minigamesMenu')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MINIGAME 2 ═══════════════════ -->
+<div class="screen" id="minigame2">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('minigamesMenu')">‹</button>
+    <div class="screen-title">🆚 Batalha</div>
+  </div>
+  <div style="text-align:center;padding:0 20px;">
+    <div class="mg-score-display" id="mg2Score">0</div>
+    <div class="mg-score-label" id="mg2ScoreLabel">PONTOS • Streak: 0</div>
+  </div>
+  <div class="battle-question" id="battleQuestion">Quem tem MAIS HP?</div>
+  <div class="vs-container">
+    <div class="vs-brawler" id="vsBrawler1" onclick="selectVs(0)">
+      <div class="vs-emoji" id="vs1Emoji">⚡</div>
+      <div class="vs-name" id="vs1Name">Brawler A</div>
+      <div class="vs-stat" id="vs1Stat">HP: ?</div>
+    </div>
+    <div class="vs-sep">VS</div>
+    <div class="vs-brawler" id="vsBrawler2" onclick="selectVs(1)">
+      <div class="vs-emoji" id="vs2Emoji">🔥</div>
+      <div class="vs-name" id="vs2Name">Brawler B</div>
+      <div class="vs-stat" id="vs2Stat">HP: ?</div>
+    </div>
+  </div>
+  <div id="mg2Result" style="display:none;text-align:center;padding:20px;width:100%">
+    <div class="mg-score-display" id="mg2FinalScore">0</div>
+    <div class="mg-score-label">PONTUAÇÃO FINAL</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;width:100%;padding:0 20px">
+      <button class="btn-primary" onclick="startMg2()">🔄 Jogar Novamente</button>
+      <button class="btn-secondary" onclick="showScreen('minigamesMenu')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MINIGAME 3 ═══════════════════ -->
+<div class="screen" id="minigame3">
+  <div class="screen-header">
+    <button class="back-btn" onclick="showScreen('minigamesMenu')">‹</button>
+    <div class="screen-title">🧩 Memória Suprema</div>
+  </div>
+  <div style="display:flex;justify-content:space-between;padding:0 20px;width:100%">
+    <div style="text-align:center"><div style="font-size:24px;font-weight:900;color:var(--gold)" id="mg3Score">0</div><div style="font-size:10px;color:var(--text-dim)">PARES</div></div>
+    <div style="text-align:center"><div style="font-size:24px;font-weight:900;color:var(--red)" id="mg3Timer">60</div><div style="font-size:10px;color:var(--text-dim)">SEGUNDOS</div></div>
+    <div style="text-align:center"><div style="font-size:24px;font-weight:900;color:var(--cyan)" id="mg3Moves">0</div><div style="font-size:10px;color:var(--text-dim)">MOVIMENTOS</div></div>
+  </div>
+  <div class="memory-grid" id="memoryGrid" style="grid-template-columns:repeat(4,1fr)"></div>
+  <div id="mg3Result" style="display:none;text-align:center;padding:20px;width:100%">
+    <div style="font-size:48px">🧩</div>
+    <div class="mg-score-display" id="mg3FinalScore">0</div>
+    <div class="mg-score-label">PARES ENCONTRADOS</div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;width:100%;padding:0 20px">
+      <button class="btn-primary" onclick="startMg3()">🔄 Jogar Novamente</button>
+      <button class="btn-secondary" onclick="showScreen('minigamesMenu')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ACHIEVEMENT POPUP ═══════════════════ -->
+<div class="achievement-popup" id="achPopup">
+  <div class="ach-icon" id="achPopupIcon">🏅</div>
+  <div class="ach-info">
+    <div class="ach-label">CONQUISTA DESBLOQUEADA!</div>
+    <div class="ach-name" id="achPopupName">Nome</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL ═══════════════════ -->
+<div class="modal-overlay" id="modalOverlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">Confirmar</div>
+    <div class="modal-text" id="modalText">Tem certeza?</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-danger" id="modalConfirmBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end gameWrapper -->
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║              BRAWL QUIZ LEGENDS — JAVASCRIPT             ║
+// ╚══════════════════════════════════════════════════════════╝
+
+// ======================== AUDIO ENGINE ========================
+const AudioEngine = {
+  ctx: null,
+  enabled: true,
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+  },
+  beep(freq, dur, type='sine', vol=0.3) {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.connect(g); g.connect(this.ctx.destination);
+      o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      g.gain.setValueAtTime(vol, this.ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      o.start(); o.stop(this.ctx.currentTime + dur);
+    } catch(e){}
+  },
+  correct() { this.beep(523,0.1); setTimeout(()=>this.beep(659,0.1),100); setTimeout(()=>this.beep(784,0.2),200); },
+  wrong() { this.beep(200,0.3,'sawtooth',0.2); },
+  click() { this.beep(440,0.05,'square',0.1); },
+  levelUp() {
+    [523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.beep(f,0.15),i*100));
+  },
+  epic() {
+    [130,165,196,261,330,392,523].forEach((f,i)=>setTimeout(()=>this.beep(f,0.2,'triangle',0.4),i*80));
+  }
+};
+
+// ======================== DATA — AVATARS ========================
+const AVATARS = ['⚡','🔥','💎','🏆','⭐','🎯','🦁','🐺','🤖','🦊','🐸','🦅','💀','🌟','🎮','👑','🛡️','⚔️','🎪','🎭'];
+
+// ======================== DATA — BRAWLERS ========================
+const BRAWLERS = [
+  {name:'Shelly',emoji:'🦊',rarity:'Inicial',class:'Dano',hp:3400,damage:840,speed:'Normal',super:'Explosão de Chumbo',gadget:'Escudo de Espuma',starpower:'Bala de Prata'},
+  {name:'Nita',emoji:'🐻',rarity:'Rara',class:'Dano',hp:3800,damage:700,speed:'Normal',super:'Bruce (Urso)',gadget:'Sinal de Caçada',starpower:'Mãe Ursa'},
+  {name:'Colt',emoji:'🔫',rarity:'Rara',class:'Dano',hp:2800,damage:560,speed:'Rápida',super:'Chuva de Balas',gadget:'Sobrecarga de Balas',starpower:'Punho de Aço'},
+  {name:'Bull',emoji:'🐂',rarity:'Rara',class:'Tank',hp:6000,damage:1020,speed:'Normal',super:'Investida do Touro',gadget:'Couro Grosso',starpower:'Berserker'},
+  {name:'Jessie',emoji:'🔧',rarity:'Rara',class:'Dano',hp:3200,damage:700,speed:'Normal',super:'Scrappy (Torreta)',gadget:'Replicador de Scrappy',starpower:'Engenho Elétrico'},
+  {name:'Brock',emoji:'🚀',rarity:'Rara',class:'Dano',hp:2800,damage:1120,speed:'Normal',super:'Chuva de Foguetes',gadget:'Foguete Rápido',starpower:'Carregado'},
+  {name:'El Primo',emoji:'🤼',rarity:'Rara',class:'Tank',hp:6400,damage:840,speed:'Normal',super:'Suplex Voador',gadget:'Suplex do Anjo',starpower:'Meteorito'},
+  {name:'Barley',emoji:'🍺',rarity:'Rara',class:'Artilheiro',hp:2800,damage:560,speed:'Normal',super:'Coquetéis',gadget:'Mojito Instável',starpower:'Aguardente Envelhecida'},
+  {name:'Poco',emoji:'🎸',rarity:'Rara',class:'Suporte',hp:4000,damage:700,speed:'Normal',super:'Serenata',gadget:'Da Capo',starpower:'Rima Doce'},
+  {name:'Rosa',emoji:'🌹',rarity:'Rara',class:'Tank',hp:5600,damage:560,speed:'Normal',super:'Cerca de Espinhos',gadget:'Botânica Básica',starpower:'Clorofila'},
+  {name:'Rico',emoji:'🤖',rarity:'Super Rara',class:'Dano',hp:2800,damage:700,speed:'Normal',super:'Mega Ricochete',gadget:'Deflector',starpower:'Rebote Extra'},
+  {name:'Darryl',emoji:'🛢️',rarity:'Super Rara',class:'Tank',hp:5600,damage:840,speed:'Normal',super:'Barril Rodante',gadget:'Rolamento de Aço',starpower:'Cano Duplo'},
+  {name:'Penny',emoji:'⚓',rarity:'Super Rara',class:'Artilheiro',hp:3000,damage:700,speed:'Normal',super:'Old Lobster (Canhão)',gadget:'Projeção Pendente',starpower:'Extra Escavação'},
+  {name:'Carl',emoji:'⛏️',rarity:'Super Rara',class:'Dano',hp:3800,damage:980,speed:'Normal',super:'Picareta Giratória',gadget:'Perfuração',starpower:'Bate Forte'},
+  {name:'Jacky',emoji:'🔨',rarity:'Super Rara',class:'Tank',hp:5600,damage:840,speed:'Normal',super:'Terraplanagem',gadget:'Jackhammer Portátil',starpower:'Pulverizadora'},
+  {name:'Gus',emoji:'👻',rarity:'Super Rara',class:'Suporte',hp:3600,damage:560,speed:'Normal',super:'Protetor de Espírito',gadget:'Ejetar',starpower:'Companheiro Fantasma'},
+  {name:'Bo',emoji:'🏹',rarity:'Épica',class:'Artilheiro',hp:3600,damage:980,speed:'Normal',super:'Campo Minado',gadget:'Super Totem',starpower:'Olhos de Águia'},
+  {name:'Emz',emoji:'💅',rarity:'Épica',class:'Dano',hp:3400,damage:560,speed:'Normal',super:'Névoa Tóxica',gadget:'Proteção Capilar',starpower:'Negativa'},
+  {name:'Stu',emoji:'🏍️',rarity:'Épica',class:'Dano',hp:3200,damage:840,speed:'Muito Rápida',super:'Arrancada',gadget:'Freiada',starpower:'Circuito'},
+  {name:'Piper',emoji:'🔭',rarity:'Épica',class:'Atirador',hp:2800,damage:1820,speed:'Normal',super:'Fuga de Para-quedas',gadget:'Escapatória',starpower:'Dupla Pontaria'},
+  {name:'Pam',emoji:'🔩',rarity:'Épica',class:'Suporte',hp:5600,damage:700,speed:'Normal',super:'Estação de Cura',gadget:'Reparação Rápida',starpower:'Atiradora Certa'},
+  {name:'Frank',emoji:'🔨',rarity:'Épica',class:'Tank',hp:7200,damage:1400,speed:'Normal',super:'Martelada',gadget:'Barreira de Bloqueio',starpower:'Sismógrafo'},
+  {name:'Bibi',emoji:'⚾',rarity:'Épica',class:'Tank',hp:5600,damage:1680,speed:'Rápida',super:'Bolha de Casal',gadget:'Espigão',starpower:'Dente de Leite'},
+  {name:'Bea',emoji:'🐝',rarity:'Épica',class:'Atirador',hp:2800,damage:840,speed:'Normal',super:'Enxame',gadget:'Veneno de Abelha',starpower:'Rei do Mel'},
+  {name:'Nani',emoji:'🌸',rarity:'Épica',class:'Atirador',hp:2800,damage:1820,speed:'Normal',super:'Peep (Torpedo)',gadget:'Fisgada',starpower:'Seta Certeira'},
+  {name:'Edgar',emoji:'✂️',rarity:'Épica',class:'Assassino',hp:4200,damage:700,speed:'Normal',super:'Levar e Largar',gadget:'Patada Rápida',starpower:'Dom Vital'},
+  {name:'Griff',emoji:'💰',rarity:'Épica',class:'Dano',hp:3200,damage:560,speed:'Normal',super:'Notas em Fuga',gadget:'Recusa de Reembolso',starpower:'Depósito à Vista'},
+  {name:'Grom',emoji:'🎵',rarity:'Épica',class:'Artilheiro',hp:2800,damage:840,speed:'Normal',super:'Chuva Sônica',gadget:'Percussão Forte',starpower:'Fronteira de Ritmo'},
+  {name:'Bonnie',emoji:'🍭',rarity:'Épica',class:'Dano',hp:3600,damage:840,speed:'Normal',super:'Canhão Clyde',gadget:'Calco',starpower:'Canhão Duplo'},
+  {name:'Gale',emoji:'💨',rarity:'Cromática',class:'Dano',hp:3400,damage:700,speed:'Normal',super:'Nevasca',gadget:'Vento Forte',starpower:'Escudo Alpino'},
+  {name:'Colette',emoji:'📸',rarity:'Cromática',class:'Dano',hp:3400,damage:'% HP',speed:'Normal',super:'Pega Tudo',gadget:'Que Combinação',starpower:'Tu Precisas Mais'},
+  {name:'Lou',emoji:'🧊',rarity:'Cromática',class:'Dano',hp:3400,damage:560,speed:'Normal',super:'Tempestade Ártica',gadget:'Cryo-Sorvete',starpower:'Nunca mais Quente'},
+  {name:'Ruffs',emoji:'🚀',rarity:'Cromática',class:'Suporte',hp:3600,damage:840,speed:'Normal',super:'Promoção Estrela',gadget:'Suprimento Aéreo',starpower:'Estrela Tripla'},
+  {name:'Buzz',emoji:'🦈',rarity:'Cromática',class:'Assassino',hp:5200,damage:1120,speed:'Normal',super:'Gancho de Torpedo',gadget:'Impedimento',starpower:'Carga de Adrenalina'},
+  {name:'Ash',emoji:'🐀',rarity:'Cromática',class:'Tank',hp:6400,damage:840,speed:'Normal',super:'Bando de Ratos',gadget:'Fúria de Ash',starpower:'Sobrevivente'},
+  {name:'Lola',emoji:'⭐',rarity:'Cromática',class:'Dano',hp:3400,damage:840,speed:'Normal',super:'Ego (Clone)',gadget:'Controle de Ego',starpower:'En Pointe'},
+  {name:'Fang',emoji:'🦅',rarity:'Cromática',class:'Assassino',hp:4800,damage:840,speed:'Rápida',super:'Soco de Voador',gadget:'Fita de Fang',starpower:'Guardião da Galinha'},
+  {name:'Eve',emoji:'🐛',rarity:'Cromática',class:'Dano',hp:3400,damage:840,speed:'Normal',super:'Ovos de Babysitter',gadget:'Canibalismo',starpower:'Inchado'},
+  {name:'Janet',emoji:'🎤',rarity:'Cromática',class:'Dano',hp:3200,damage:980,speed:'Normal',super:'Pásseio Aéreo',gadget:'Eco',starpower:'Grito de Popstar'},
+  {name:'Otis',emoji:'🐙',rarity:'Cromática',class:'Dano',hp:3200,damage:700,speed:'Normal',super:'Silêncio de Tinta',gadget:'Escorregadio',starpower:'Pintura Fresca'},
+  {name:'Sam',emoji:'🥊',rarity:'Cromática',class:'Tank',hp:5600,damage:1680,speed:'Normal',super:'Soco Gadget',gadget:'Magneto',starpower:'Turbo-Carga'},
+  {name:'Gus',emoji:'👻',rarity:'Super Rara',class:'Suporte',hp:3600,damage:560,speed:'Normal',super:'Protetor de Espírito',gadget:'Ejetar',starpower:'Companheiro Fantasma'},
+  {name:'Buster',emoji:'🎬',rarity:'Cromática',class:'Tank',hp:6400,damage:840,speed:'Normal',super:'Escudo de Holofote',gadget:'Escudo de Stuntman',starpower:'Estrela em Ascensão'},
+  {name:'Gray',emoji:'🌀',rarity:'Cromática',class:'Suporte',hp:3600,damage:840,speed:'Normal',super:'Telepatia de Escritório',gadget:'Brainstorm',starpower:'Mentalidade Compartilhada'},
+  {name:'R-T',emoji:'🤖',rarity:'Cromática',class:'Dano',hp:3600,damage:840,speed:'Normal',super:'Dividir',gadget:'Bateria Extra',starpower:'Turbo de Dano'},
+  {name:'Willow',emoji:'🌊',rarity:'Cromática',class:'Controlador',hp:3600,damage:700,speed:'Normal',super:'Hipnotismo',gadget:'Ondas de Mente',starpower:'Sereia'},
+  {name:'Doug',emoji:'🍔',rarity:'Cromática',class:'Suporte',hp:4400,damage:840,speed:'Normal',super:'Entrega Expresso',gadget:'Condimento',starpower:'Efeito Engordar'},
+  {name:'Chuck',emoji:'⚡',rarity:'Cromática',class:'Dano',hp:3200,damage:840,speed:'Muito Rápida',super:'Corrida de Trovoada',gadget:'Sobrecarga',starpower:'Bônus de Energia'},
+  {name:'Mico',emoji:'🐒',rarity:'Cromática',class:'Assassino',hp:3200,damage:1120,speed:'Rápida',super:'Trampolim',gadget:'Banana Ranged',starpower:'Macaco Ágil'},
+  {name:'Lily',emoji:'🌺',rarity:'Cromática',class:'Assassino',hp:3000,damage:840,speed:'Rápida',super:'Invadir',gadget:'Veneno Letal',starpower:'Esporo Venenoso'},
+  {name:'Angelo',emoji:'💘',rarity:'Cromática',class:'Atirador',hp:2800,damage:1120,speed:'Normal',super:'Flecha de Amor',gadget:'Voa Amor',starpower:'Inflado'},
+  {name:'Berry',emoji:'🫐',rarity:'Cromática',class:'Suporte',hp:3600,damage:700,speed:'Normal',super:'Milkshake Curador',gadget:'Batida Frutal',starpower:'Colheita Saudável'},
+  {name:'Spike',emoji:'🌵',rarity:'Lendária',class:'Dano',hp:2800,damage:840,speed:'Normal',super:'Campo de Espinhos',gadget:'Arremesso de Estaca',starpower:'Fertilizante'},
+  {name:'Crow',emoji:'🐦',rarity:'Lendária',class:'Assassino',hp:3200,damage:420,speed:'Rápida',super:'Voo Rápido',gadget:'Elixir Pesado',starpower:'Resíduo Letal'},
+  {name:'Leon',emoji:'🦎',rarity:'Lendária',class:'Assassino',hp:3400,damage:840,speed:'Rápida',super:'Fumaça de Invisibilidade',gadget:'Dedos Escorregadios',starpower:'Perseguidor de Sombras'},
+  {name:'Sandy',emoji:'🌪️',rarity:'Lendária',class:'Controlador',hp:3800,damage:700,speed:'Normal',super:'Tempestade de Areia',gadget:'Bolsa de Areia',starpower:'Nuvem de Pedras'},
+  {name:'Amber',emoji:'🔥',rarity:'Lendária',class:'Dano',hp:3600,damage:560,speed:'Normal',super:'Aluvião de Chamas',gadget:'Gasolina Extra',starpower:'Inflamável'},
+  {name:'Meg',emoji:'🦾',rarity:'Lendária',class:'Dano',hp:4200,damage:700,speed:'Normal',super:'Mech-o-matic',gadget:'Sistema de Proteção',starpower:'Mech Aprimorado'},
+  {name:'Surge',emoji:'⚡',rarity:'Lendária',class:'Dano',hp:3600,damage:840,speed:'Normal',super:'Melhoria',gadget:'Energia Explosiva',starpower:'Sobrecarregado'},
+  {name:'Chester',emoji:'🎭',rarity:'Lendária',class:'Dano',hp:3400,damage:840,speed:'Normal',super:'Aleatório',gadget:'Escolha do Chester',starpower:'A Questão é Qual'},
+  {name:'Cordelius',emoji:'🍄',rarity:'Lendária',class:'Assassino',hp:4000,damage:840,speed:'Normal',super:'O Mundo da Sombra',gadget:'Frutos do Bem',starpower:'Chamado da Floresta'},
+  {name:'Kit',emoji:'🐱',rarity:'Lendária',class:'Suporte',hp:3200,damage:700,speed:'Rápida',super:'Montar!',gadget:'Bola de Pelúcia',starpower:'Gatinho Curioso'},
+  {name:'Draco',emoji:'🐉',rarity:'Lendária',class:'Tank',hp:6000,damage:1120,speed:'Normal',super:'Forma de Dragão',gadget:'Garras de Dragão',starpower:'Escamas de Dragão'},
+  {name:'Kenji',emoji:'⚔️',rarity:'Lendária',class:'Assassino',hp:4200,damage:980,speed:'Rápida',super:'Corte Cem Fios',gadget:'Postura do Samurai',starpower:'Lâmina do Vento'},
+  {name:'Mortis',emoji:'🦇',rarity:'Mítica',class:'Assassino',hp:3400,damage:840,speed:'Muito Rápida',super:'Festim de Morcegos',gadget:'Dose de Adrenalina',starpower:'Colecionador'},
+  {name:'Tara',emoji:'🔮',rarity:'Mítica',class:'Dano',hp:3200,damage:700,speed:'Normal',super:'Buracos Negros',gadget:'Sombra Afiada',starpower:'Presença Sombria'},
+  {name:'Gene',emoji:'🧞',rarity:'Mítica',class:'Suporte',hp:3800,damage:700,speed:'Normal',super:'Mão Mágica',gadget:'Poção da Cura',starpower:'Espírito Gentil'},
+  {name:'Max',emoji:'⚡',rarity:'Mítica',class:'Suporte',hp:3600,damage:700,speed:'Muito Rápida',super:'Super Velocidade',gadget:'Dose Extra',starpower:'Corra Mais Rápido'},
+  {name:'Mr. P',emoji:'🐧',rarity:'Mítica',class:'Artilheiro',hp:3000,damage:840,speed:'Normal',super:'Porters (Pinguins)',gadget:'Modo Protetor',starpower:'Pinguim Chefe'},
+  {name:'Sprout',emoji:'🌱',rarity:'Mítica',class:'Artilheiro',hp:2800,damage:840,speed:'Normal',super:'Semente de Muda',gadget:'Superadubo',starpower:'Broto Fotossintético'},
+  {name:'Byron',emoji:'🧪',rarity:'Mítica',class:'Suporte',hp:2800,damage:420,speed:'Normal',super:'Elixir Curador',gadget:'Médico Milagroso',starpower:'Injeção Rápida'},
+  {name:'Squeak',emoji:'🐹',rarity:'Mítica',class:'Artilheiro',hp:3200,damage:840,speed:'Normal',super:'Bolas Pegajosas',gadget:'Aderência',starpower:'Explosão Adesiva'},
+  {name:'Lou',emoji:'🧊',rarity:'Cromática',class:'Dano',hp:3400,damage:560,speed:'Normal',super:'Tempestade Ártica',gadget:'Cryo-Sorvete',starpower:'Nunca mais Quente'},
+  {name:'Ruffs',emoji:'🚀',rarity:'Cromática',class:'Suporte',hp:3600,damage:840,speed:'Normal',super:'Promoção Estrela',gadget:'Suprimento Aéreo',starpower:'Estrela Tripla'},
+  {name:'Belle',emoji:'⚡',rarity:'Cromática',class:'Atirador',hp:2800,damage:1120,speed:'Normal',super:'Eletrificação',gadget:'Chocante',starpower:'Marca Registrada'},
+  {name:'Buzz',emoji:'🦈',rarity:'Cromática',class:'Assassino',hp:5200,damage:1120,speed:'Normal',super:'Gancho de Torpedo',gadget:'Impedimento',starpower:'Carga de Adrenalina'},
+  {name:'Ash',emoji:'🐀',rarity:'Cromática',class:'Tank',hp:6400,damage:840,speed:'Normal',super:'Bando de Ratos',gadget:'Fúria de Ash',starpower:'Sobrevivente'},
+  {name:'Griff',emoji:'💰',rarity:'Épica',class:'Dano',hp:3200,damage:560,speed:'Normal',super:'Notas em Fuga',gadget:'Recusa de Reembolso',starpower:'Depósito à Vista'},
+  {name:'Tara',emoji:'🔮',rarity:'Mítica',class:'Dano',hp:3200,damage:700,speed:'Normal',super:'Buracos Negros',gadget:'Sombra Afiada',starpower:'Presença Sombria'},
+  {name:'Shelly',emoji:'🦊',rarity:'Inicial',class:'Dano',hp:3400,damage:840,speed:'Normal',super:'Explosão de Chumbo',gadget:'Escudo de Espuma',starpower:'Bala de Prata'},
+  {name:'8-BIT',emoji:'🕹️',rarity:'Épica',class:'Dano',hp:5600,damage:980,speed:'Lenta',super:'Turbo Melhorado',gadget:'Cheat Codes',starpower:'Vitória Sempre Certa'},
+  {name:'Mr. P',emoji:'🐧',rarity:'Mítica',class:'Artilheiro',hp:3000,damage:840,speed:'Normal',super:'Porters (Pinguins)',gadget:'Modo Protetor',starpower:'Pinguim Chefe'},
+];
+
+// Deduplicate brawlers by name
+const BRAWLERS_UNIQUE = [];
+const _seen = new Set();
+for(const b of BRAWLERS){if(!_seen.has(b.name)){_seen.add(b.name);BRAWLERS_UNIQUE.push(b);}}
+
+// ======================== QUIZ QUESTIONS ========================
+const QUESTIONS = {
+  easy: [
+    {q:'Qual brawler começa com todos os jogadores novos no Brawl Stars?',opts:['Shelly','Nita','Colt','El Primo','Rosa'],a:0},
+    {q:'Qual é a cor associada à raridade "Lendária" no Brawl Stars?',opts:['Azul','Verde','Laranja','Vermelho','Roxo'],a:2},
+    {q:'O que o brawler "El Primo" faz em seu super?',opts:['Atira foguetes','Invoca um urso','Salta e causa dano ao pousar','Cria uma barreira','Cura aliados'],a:2},
+    {q:'Qual brawler é um cactus com espinhos?',opts:['Leon','Sandy','Spike','Crow','Amber'],a:2},
+    {q:'Qual modo de jogo do Brawl Stars envolve empurrar uma bola para o gol inimigo?',opts:['Gem Grab','Brawl Ball','Heist','Bounty','Showdown'],a:1},
+    {q:'O brawler "Barley" usa qual tipo de ataque principal?',opts:['Espadas','Garras','Garrafas com líquido tóxico','Espinhos','Raios'],a:2},
+    {q:'Qual empresa desenvolveu o Brawl Stars?',opts:['EA Games','Supercell','Riot Games','Activision','King'],a:1},
+    {q:'Qual brawler tem um urso chamado "Bruce" como seu super?',opts:['Rosa','Poco','Nita','Barley','Pam'],a:2},
+    {q:'O brawler "Crow" pertence a qual raridade?',opts:['Épica','Mítica','Super Rara','Lendária','Cromática'],a:3},
+    {q:'Qual modo é o mais básico, com 10 jogadores em uma arena eliminando uns aos outros?',opts:['Gem Grab','Bounty','Showdown','Heist','Brawl Ball'],a:2},
+    {q:'Qual brawler usa um microfone como arma?',opts:['Poco','Janet','Piper','Eve','Colette'],a:1},
+    {q:'Qual é o nome do super do brawler "Leon"?',opts:['Fumaça Invisível','Voo Rápido','Campo Minado','Suco de Sapo','Dash Mortal'],a:0},
+    {q:'O brawler "Bull" pertence a qual classe?',opts:['Assassino','Atirador','Tank','Suporte','Artilheiro'],a:2},
+    {q:'Qual brawler usa uma guitarra como arma?',opts:['Poco','Barley','Brock','Penny','Jacky'],a:0},
+    {q:'Qual brawler tem a habilidade de escalar paredes?',opts:['Leon','Mortis','Crow','Spike','Sandy'],a:1},
+    {q:'Quantas gemas normalmente são necessárias para vencer no modo Gem Grab?',opts:['5','10','15','20','25'],a:1},
+    {q:'O que o brawler "Pam" faz com seu super?',opts:['Ataca com metralhadora','Cria uma estação de cura','Invoca robôs','Explode inimigos','Lança foguetes'],a:1},
+    {q:'Qual raridade vem antes de "Épica" na hierarquia?',opts:['Rara','Super Rara','Mítica','Lendária','Cromática'],a:1},
+    {q:'O brawler "Jessie" cria qual objeto com seu super?',opts:['Uma bomba','Um escudo','Uma torreta chamada Scrappy','Um portal','Um clone'],a:2},
+    {q:'Qual brawler tem olhos de coruja e flechas explosivas?',opts:['Brock','Bo','Piper','Bea','Nani'],a:1},
+    {q:'O brawler "Frank" usa qual arma?',opts:['Guitarra','Picareta','Martelo gigante','Espada','Lança'],a:2},
+    {q:'Qual brawler tem asas de morcego e um estilo gótico?',opts:['Crow','Mortis','Leon','Sandy','Tara'],a:1},
+    {q:'O modo "Bounty" envolve o quê?',opts:['Pegar gemas','Proteger o cofre','Eliminar inimigos para ganhar estrelas','Carregar a bola','Destruir o cofre'],a:2},
+    {q:'Qual brawler é uma criança que ataca com tesouras?',opts:['Stu','Edgar','Griff','Bonnie','Grom'],a:1},
+    {q:'O brawler "Sandy" tem qual poder de dormir?',opts:['Tempestade de Areia','Super Dormir','Sopro de Areia','Zona de Sono','Nuvem Mágica'],a:0},
+    {q:'Qual brawler é um robô e tem um irmão gêmeo no jogo?',opts:['Rico','8-BIT','R-T','Gus','Otis'],a:2},
+    {q:'Qual é o nome do mascote/personagem principal do Brawl Stars?',opts:['Leon','Shelly','El Primo','Spike','Bull'],a:3},
+    {q:'O brawler "Gale" usa qual elemento?',opts:['Fogo','Vento/Neve','Água','Terra','Raio'],a:1},
+    {q:'Qual brawler é um gênio da lâmpada?',opts:['Tara','Byron','Gene','Sandy','Ruffs'],a:2},
+    {q:'A raridade "Cromática" foi introduzida com qual sistema?',opts:['Troféus','Brawl Pass','Liga','Clube','Loja'],a:1},
+    {q:'Qual brawler usa um chapéu cowboy e ataca com espingarda?',opts:['Shelly','Colt','Bull','Nita','Poco'],a:0},
+    {q:'O modo "Hot Zone" envolve o quê?',opts:['Destruir o cofre','Controlar zonas no mapa','Eliminar todos','Pegar a bola','Coletar gemas'],a:1},
+    {q:'Qual brawler é uma sereia ou criatura aquática?',opts:['Sandy','Willow','Belle','Eve','Amber'],a:1},
+    {q:'O brawler "Spike" é baseado em qual planta?',opts:['Rosa','Cacto','Girassol','Bambu','Orquídea'],a:1},
+    {q:'Qual brawler usa veneno para enfraquecer inimigos?',opts:['Crow','Barley','Spike','Piper','Bea'],a:0},
+  ],
+  medium: [
+    {q:'Qual é a velocidade de movimento do brawler "Mortis"?',opts:['Lenta','Normal','Rápida','Muito Rápida','Ultrarrápida'],a:3},
+    {q:'O super do brawler "Tara" cria o quê?',opts:['Uma cura em área','Um buraco negro que puxa inimigos','Uma explosão','Um clone','Uma barreira'],a:1},
+    {q:'Qual é o Star Power "Fertilizante" do brawler Spike?',opts:['Aumenta o dano','Cura aliados próximos ao super','Cria mais espinhos','Venena inimigos','Aumenta alcance'],a:1},
+    {q:'Qual brawler pertence à classe "Cromática" e usa reais da vida real como ataque?',opts:['Colette','Griff','Byron','Sam','R-T'],a:1},
+    {q:'O gadget "Da Capo" do brawler Poco faz o quê?',opts:['Aumenta dano','Faz o ataque curar aliados','Cria barreira sonora','Silencia inimigos','Duplica super'],a:1},
+    {q:'Qual brawler tem o ataque que causa dano baseado em porcentagem do HP máximo do inimigo?',opts:['Colette','Tara','Griff','Sandy','Chester'],a:0},
+    {q:'O brawler "Byron" é classificado como qual tipo?',opts:['Tank','Dano','Suporte','Assassino','Artilheiro'],a:2},
+    {q:'Qual é o nome do gadget do brawler "Bo"?',opts:['Flecha Explosiva','Super Totem','Tiro de Minas','Olho de Águia','Tocaia'],a:1},
+    {q:'O brawler "Penny" tem um canhão chamado como?',opts:['Old Betsy','Old Lobster','Scrap Cannon','Pirate Gun','Coral Cannon'],a:1},
+    {q:'Qual é o Star Power "Bala de Prata" do brawler Shelly?',opts:['Cada acerto cura Shelly','O super destrói paredes','Balas ricas causam slow','Ataque carregado atravessa paredes','Super dá invisibilidade'],a:1},
+    {q:'O brawler "Max" tem qual característica única de velocidade?',opts:['Ela é a mais lenta','Ela é a mais rápida de todos os brawlers','Ela aumenta velocidade ao nível de troféu','Sua super dá velocidade apenas a ela','Ela tem velocidade normal'],a:1},
+    {q:'Qual brawler invoca pinguins como minions com seu super?',opts:['Mr. P','Gus','Byron','Squeak','Sprout'],a:0},
+    {q:'O brawler "Sandy" pertence a qual raridade?',opts:['Épica','Mítica','Cromática','Lendária','Super Rara'],a:3},
+    {q:'Qual é o nome da super do brawler "Ash"?',opts:['Modo Fúria','Bando de Ratos','Cólera do Trash','Invasão','Explosão de Raiva'],a:1},
+    {q:'O Star Power "Dom Vital" do Edgar faz o quê?',opts:['Aumenta seu dano','Cada acerto cura Edgar','Aumenta o alcance do salto','Dá escudo temporário','Reduz cooldown do super'],a:1},
+    {q:'Qual brawler tem o gadget "Cheat Codes"?',opts:['Rico','8-BIT','Stu','R-T','Grom'],a:1},
+    {q:'A raridade "Mítica" contém qual desses brawlers?',opts:['Spike','Crow','Gene','Sandy','Amber'],a:2},
+    {q:'Qual modo de jogo foi introduzido durante o evento "Brawlidays"?',opts:['Robo Rumble','Big Game','Super City Rampage','Snow Tel','Snowball Fight'],a:3},
+    {q:'O brawler "Chester" tem qual característica única em seu super?',opts:['Ele escolhe o super com mais dano','Seu super é escolhido aleatoriamente','Seu super varia conforme o nível','Ele tem 5 supers diferentes','Ele copia o super do inimigo'],a:1},
+    {q:'Qual é o HP máximo base do brawler "Frank"?',opts:['5600','6400','7200','8000','6800'],a:2},
+    {q:'O brawler "Colette" faz quanto de dano máximo em um ataque normal?',opts:['Fixo 700','% do HP máximo do inimigo','Variável conforme distância','Baseado no rank dela','Baseado no XP do inimigo'],a:1},
+    {q:'Qual brawler tem um gadget chamado "Fisgada"?',opts:['Nani','Piper','Belle','Bea','Penny'],a:0},
+    {q:'O brawler "Fang" usa qual estilo de luta?',opts:['Boxe','Karatê com chutes voadores','Esgrima','Luta livre','Artes marciais com facas'],a:1},
+    {q:'Qual é o nome do clone do brawler "Lola"?',opts:['Doppelganger','Alter Ego','Ego','Clone Lola','Sombra Lola'],a:2},
+    {q:'O brawler "Eve" cria o quê com seu super?',opts:['Um enxame de abelhas','Ovos que eclodem em filhotes','Uma explosão de DNA','Uma nuvem venenosa','Uma barreira de slime'],a:1},
+    {q:'Qual brawler usa um canhão chamado "Clyde"?',opts:['Penny','Darryl','Bonnie','Ash','Sam'],a:2},
+    {q:'O brawler "Ruffs" tem qual habilidade especial em seu super?',opts:['Cura toda a equipe','Dá uma melhoria de nível ao aliado','Cria campos de forças','Multiplica o dano','Invoca drones'],a:1},
+    {q:'Qual brawler pertence ao trio da "Estrelópolis"?',opts:['Spike e Sandy','Sprout e Gale','Ruffs e Belle','Leon e Sandy','Mortis e Crow'],a:2},
+    {q:'O brawler "Grom" lança o quê como super?',opts:['Ondas sonoras em área','Uma chuva sônica no mapa inteiro','Granadas musicais','Bombas de baixo','Lasers de música'],a:1},
+    {q:'Qual é o gadget do brawler "Cordelius"?',opts:['Esporo Venenoso','Frutos do Bem','Teléfone da Floresta','Champignon Explosivo','Raiz Profunda'],a:1},
+    {q:'O brawler "Draco" foi lançado como o primeiro brawler de qual raridade específica?',opts:['Mítica','Lendária','Cromática','Inicial','Épica'],a:1},
+    {q:'Qual classe de brawler é melhor em atacar a longa distância com disparos únicos precisos?',opts:['Tank','Artilheiro','Atirador','Assassino','Suporte'],a:2},
+    {q:'O Star Power "Companheiro Fantasma" do Gus faz o quê?',opts:['Um escudo extra','Um fantasminha que cura aliados','Aumenta o dano de espíritos','Invoca um espírito de ataque','Fantma explode ao morrer'],a:1},
+    {q:'Qual brawler tem o super "Silêncio de Tinta" que impede brawlers de usar supers?',opts:['Gray','Otis','Willow','Chuck','Mico'],a:1},
+  ],
+  hard: [
+    {q:'Em qual atualização específica o sistema de "Hypercharge" (Hipercarga) foi introduzido no Brawl Stars?',opts:['Atualização de Outubro 2022','Atualização de Junho 2023','Atualização de Dezembro 2023','Atualização de Março 2024','Atualização de Agosto 2023'],a:2},
+    {q:'Qual foi o primeiro brawler lendário a ser adicionado ao jogo fora do lançamento original?',opts:['Sandy','Leon','Spike','Crow','Amber'],a:0},
+    {q:'O brawler "Surge" pode ser melhorado quantas vezes pelo super durante uma partida?',opts:['1 vez','2 vezes','3 vezes','4 vezes','5 vezes'],a:2},
+    {q:'Qual é a velocidade exata em tiles por segundo do brawler mais rápido do jogo sem power-ups?',opts:['720','750','800','820','900'],a:2},
+    {q:'O gadget "Dose de Adrenalina" do Mortis faz qual efeito?',opts:['Cura 1500 HP instantaneamente','Cria morcegos explosivos','Ressuscita Mortis uma vez','Reduz cooldown do super','Aumenta velocidade temporariamente'],a:0},
+    {q:'Quantas Star Powers no total existiam quando o sistema de Star Powers foi lançado em 2018?',opts:['6','8','10','12','15'],a:0},
+    {q:'Qual brawler foi originalmente chamado de "Bo" durante os testes beta mas teve seu nome alterado?',opts:['Jesse','Barley','Dynamike','Tick','Sprout'],a:2},
+    {q:'O brawler "Cordelius" usa qual super único que isola o inimigo?',opts:['Campo de sombra','O Mundo da Sombra (Shadow Realm)','Floresta Sombria','Portal das Trevas','Dimensão Alternativa'],a:1},
+    {q:'Qual foi o primeiro trio de brawlers (com lore conectado) a ser introduzido com história elaborada?',opts:['Leon, Sandy e Spike','Mortis, Tara e Gene','Ruffs e Belle','Carl, Jacky e Barley','Sprout, Gale e Gene'],a:1},
+    {q:'Em qual ano o Brawl Stars foi lançado mundialmente?',opts:['2017','2018','2019','2020','2021'],a:2},
+    {q:'O brawler "Kenji" pertence a qual lore específico dentro do universo Brawl Stars?',opts:['Starr Park','Estrelópolis','Escola de Magia','Clã do Samurai','Torneio dos Brawlers'],a:0},
+    {q:'Qual brawler era originalmente um modo de evento especial antes de se tornar jogável?',opts:['Meg','Surge','Sam','Chester','Buster'],a:0},
+    {q:'O Star Power "Colecionador" do Mortis faz o quê especificamente?',opts:['Cada morcego que acerta cura Mortis','Cada brawler eliminado dá cura máxima','Morcegos causam mais dano','Invoca mais morcegos','Mortis drena HP dos inimigos'],a:0},
+    {q:'Qual é o nome exato do Star Power do brawler "Crow" que faz veneno causar mais dano em inimigos com HP baixo?',opts:['Veneno Letal','Resíduo Letal','Toxina Mortal','Veneno Concentrado','Tóxico Final'],a:1},
+    {q:'O brawler "8-BIT" tem qual característica única de velocidade em relação aos outros?',opts:['Ele é o mais rápido','É o segundo mais lento','É o mais lento de todos os brawlers','Tem velocidade variável','É o único com velocidade "Ultra Lenta"'],a:2},
+    {q:'Qual brawler pode mudar de forma entre modo normal e modo robô com um super?',opts:['R-T','Meg','8-BIT','Gus','Rico'],a:1},
+    {q:'O modo de jogo "Super City Rampage" foi descontinuado em qual período?',opts:['2020','2021','2022','2023','2024'],a:1},
+    {q:'Qual é o exato número de gemas que o inimigo larga ao morrer no modo Gem Grab com 10 gemas?',opts:['5','7','8','Todas as gemas','Metade arredondada'],a:3},
+    {q:'O brawler "Janet" tem qual mecânica especial durante seu super?',opts:['Ela fica invisível','Ela voa sobre o mapa atirando bombas','Ela duplica seus projéteis','Ela se teletransporta','Ela cria um clone'],a:1},
+    {q:'Quantos gadgets no máximo cada brawler pode ter simultaneamente?',opts:['1','2','3','4','5'],a:1},
+    {q:'Qual foi o primeiro brawler "Cromático" lançado via Brawl Pass?',opts:['Gale','Lou','Colette','Ruffs','Buzz'],a:0},
+    {q:'O brawler "R-T" quando se divide, quantas partes ele cria?',opts:['2','3','4','5','6'],a:0},
+    {q:'Qual lore explica a origem do Starr Park no universo Brawl Stars?',opts:['Um parque de diversões abandonado do futuro','Um parque de diversões sombrio administrado pelo Sr. P','Um campo de batalha interdimensional','Uma simulação virtual controlada por IA','Um experimento científico fora de controle'],a:1},
+    {q:'O brawler "Angelo" usa qual mecânica especial com seu ataque?',opts:['As flechas retornam ao atacante','As flechas se carregam ficando mais poderosas','As flechas se multiplicam no ar','As flechas envenenam inimigos','As flechas atravessam todos os inimigos'],a:1},
+    {q:'Qual é o nome exato do Star Power do brawler "Max" que aumenta a velocidade do seu super?',opts:['Overdrive','Max Speed','Corra Mais Rápido','Speed Boost','Velocity Max'],a:2},
+    {q:'O brawler "Willow" usa qual mecânica de controle de massas em seu super?',opts:['Congela inimigos','Empurra inimigos','Hipnotiza e controla um inimigo','Silencia um inimigo','Cria um campo de medo'],a:2},
+    {q:'Qual brawler tem o menor alcance de ataque entre os assassinos?',opts:['Edgar','Mortis','Fang','Sam','Mico'],a:0},
+    {q:'O Star Power "En Pointe" da Lola faz o quê com o clone "Ego"?',opts:['O clone causa mais dano','O clone orbita Lola causando dano contínuo','O clone duplica os ataques de Lola','O clone explode ao morrer','O clone cura Lola'],a:1},
+    {q:'Qual brawler do trio de Halloween tem poderes de magia das trevas?',opts:['Mortis','Tara','Gene','Sandy','Crow'],a:1},
+    {q:'Em quantas regiões o Brawl Stars foi lançado em soft launch antes do lançamento global?',opts:['3','4','5','6','7'],a:1},
+    {q:'O brawler "Chuck" tem qual mecânica única durante seu super?',opts:['Ele cria portais de eletricidade','Ele planta postes de energia que ativam sua super dash','Ele acelera continuamente sem parar','Ele cria uma tempestade elétrica estática','Ele reflete ataques enquanto corre'],a:1},
+    {q:'Qual é o nome exato do primeiro Star Power do brawler "Bea"?',opts:['Mel Dourado','Rei do Mel','Abelha Rainha','Ferroada','Colmeia Dourada'],a:1},
+    {q:'O brawler "Lily" pertence a qual trio de lore no universo Brawl Stars?',opts:['Trio das Flores','Trio das Sombras','Trio Lendário','Trio da Escola de Brawl','Trio da Floresta'],a:3},
+    {q:'Qual foi o modo de jogo exclusivo lançado para celebrar o 5º aniversário do Brawl Stars?',opts:['Anniversary Showdown','5th Anniversary Brawl','Brawlidays','Birthday Bash','Party Chaos'],a:3},
+  ]
+};
+
+// ======================== LEGEND QUESTION ========================
+const LEGEND_QUESTION = {
+  q: '🌟 PERGUNTA DA LENDA ABSOLUTA 🌟\n\nQual foi o primeiro brawler a receber oficialmente uma "Hipercarga" (Hypercharge) no Brawl Stars, de acordo com a atualização de lançamento do sistema?',
+  opts:['Shelly','El Primo','Colt','Bull','Surge'],
+  a:0,
+  explanation:'Shelly foi a primeira brawler a receber a Hipercarga, servindo de brawler-exemplo para o lançamento do sistema em dezembro de 2023.'
+};
+
+// ======================== RANKS ========================
+const RANKS = [
+  {name:'Iniciante',icon:'🔰',color:'#78909C',minXp:0},
+  {name:'Casual',icon:'🎮',color:'#66BB6A',minXp:50},
+  {name:'Competidor',icon:'⚡',color:'#42A5F5',minXp:150},
+  {name:'Veterano',icon:'🛡️',color:'#AB47BC',minXp:300},
+  {name:'Pro Player',icon:'🔥',color:'#FF7043',minXp:600},
+  {name:'Mestre',icon:'👑',color:'#EF5350',minXp:1000},
+  {name:'Lenda',icon:'🌟',color:'#FFD700',minXp:1500},
+  {name:'LENDA ABSOLUTA',icon:'💎',color:'#FFD700',minXp:2000},
+];
+
+function getRank(xp) {
+  let r = RANKS[0];
+  for(const rank of RANKS) { if(xp >= rank.minXp) r = rank; }
+  return r;
+}
+
+// ======================== ACHIEVEMENTS ========================
+const ACHIEVEMENTS_LIST = [
+  {id:'first_correct',icon:'✅',name:'Primeiro Acerto',desc:'Acerte sua primeira pergunta',cond:p=>p.totalCorrect>=1},
+  {id:'win10',icon:'🏆',name:'10 Vitórias',desc:'Vença 10 partidas',cond:p=>p.wins>=10},
+  {id:'master_easy',icon:'🟢',name:'Mestre do Fácil',desc:'Complete o quiz fácil com 100%',cond:p=>p.history.some(h=>h.diff==='easy'&&h.pct===100)},
+  {id:'genius_medium',icon:'🟡',name:'Gênio do Médio',desc:'Acerte 80% no quiz médio',cond:p=>p.history.some(h=>h.diff==='medium'&&h.pct>=80)},
+  {id:'survived_hard',icon:'🔴',name:'Sobrevivente',desc:'Complete o quiz difícil',cond:p=>p.history.some(h=>h.diff==='hard')},
+  {id:'legend',icon:'💎',name:'LENDA ABSOLUTA',desc:'Acerte a Pergunta da Lenda',cond:p=>p.legendCorrect},
+  {id:'combo5',icon:'🔥',name:'Combo x5',desc:'Faça um combo de 5 acertos',cond:p=>p.maxCombo>=5},
+  {id:'xp1000',icon:'⭐',name:'1000 XP',desc:'Alcance 1000 XP total',cond:p=>p.xp>=1000},
+  {id:'minigame1',icon:'⚡',name:'Rápido como Raio',desc:'Jogue o Minigame Escolha Rápida',cond:p=>p.minigamesPlayed>=1},
+  {id:'perfect',icon:'💯',name:'Perfeição',desc:'Acerte todas as perguntas de qualquer quiz',cond:p=>p.history.some(h=>h.pct===100)},
+];
+
+// ======================== PROFILE STATE ========================
+let profile = null;
+
+function loadProfile() {
+  const saved = localStorage.getItem('brawlQuizProfile');
+  if(saved) { try{ profile = JSON.parse(saved); }catch(e){ profile = null; } }
+}
+function saveProfile() {
+  if(profile) localStorage.setItem('brawlQuizProfile',JSON.stringify(profile));
+}
+function createDefaultProfile(name, avatar) {
+  return {
+    name, avatar,
+    xp: 0, level: 1,
+    wins: 0, losses: 0,
+    totalCorrect: 0, totalAnswered: 0,
+    maxCombo: 0,
+    history: [],
+    minigamesPlayed: 0,
+    achievements: [],
+    legendCorrect: false,
+    legendSeen: false,
+  };
+}
+function getAccuracy() {
+  if(!profile || profile.totalAnswered===0) return 0;
+  return Math.round((profile.totalCorrect/profile.totalAnswered)*100);
+}
+
+// ======================== SETTINGS ========================
+let settings = {sound:true, anim:true, timer:false};
+function loadSettings() {
+  const s = localStorage.getItem('brawlQuizSettings');
+  if(s) try{ settings = JSON.parse(s); }catch(e){}
+}
+function saveSettings() { localStorage.setItem('brawlQuizSettings',JSON.stringify(settings)); }
+
+// ======================== QUIZ STATE ========================
+let quizState = {
+  questions: [],
+  current: 0,
+  correct: 0,
+  wrong: 0,
+  xpGained: 0,
+  combo: 0,
+  maxCombo: 0,
+  diff: 'easy',
+  answered: false,
+  timerInterval: null,
+  timerVal: 30,
+};
+
+// ======================== SCREEN MANAGEMENT ========================
+function showScreen(id) {
+  AudioEngine.click();
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+  });
+  const el = document.getElementById(id);
+  if(el) {
+    el.classList.add('active');
+    el.scrollTop = 0;
+  }
+  if(id==='mainMenu') updateMenuUI();
+}
+
+// ======================== PARTICLES ========================
+function createParticles() {
+  const bg = document.getElementById('animBg');
+  for(let i=0;i<15;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*6+2;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${['#FFD700','#FF6B35','#00D4FF','#9B59B6'][Math.floor(Math.random()*4)]};
+      opacity:${Math.random()*0.5+0.1};
+      animation-duration:${Math.random()*10+8}s;
+      animation-delay:${Math.random()*5}s;
+    `;
+    bg.appendChild(p);
+  }
+}
+
+// ======================== LOADING ========================
+function runLoading() {
+  const bar = document.getElementById('loadBar');
+  const text = document.getElementById('loadText');
+  const messages = [
+    'Inicializando arena...',
+    'Carregando brawlers raros...',
+    'Preparando perguntas épicas...',
+    'Carregando dados dos 104 brawlers...',
+    'Ativando sistema de ranks...',
+    'Quase pronto...',
+    'Entrando na arena! ⚡'
+  ];
+  let prog = 0;
+  let msgIdx = 0;
+  const interval = setInterval(()=>{
+    prog += Math.random()*18+5;
+    if(prog>100)prog=100;
+    bar.style.width = prog+'%';
+    if(msgIdx < messages.length-1 && prog > (msgIdx+1)*14) {
+      msgIdx++;
+      text.textContent = messages[msgIdx];
+    }
+    if(prog>=100){
+      clearInterval(interval);
+      text.textContent = '⚡ Pronto!';
+      setTimeout(()=>{
+        if(profile) { showScreen('mainMenu'); }
+        else { showScreen('profileSetup'); }
+      },600);
+    }
+  },200);
+}
+
+// ======================== AVATAR GRID ========================
+function buildAvatarGrid() {
+  const grid = document.getElementById('avatarGrid');
+  let selectedAvatar = AVATARS[0];
+  grid.innerHTML = '';
+  AVATARS.forEach((av,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (i===0?' selected':'');
+    btn.textContent = av;
+    btn.onclick = ()=>{
+      grid.querySelectorAll('.avatar-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedAvatar = av;
+      window._selectedAvatar = av;
+    };
+    grid.appendChild(btn);
+  });
+  window._selectedAvatar = AVATARS[0];
+}
+
+function createProfile() {
+  const name = document.getElementById('playerNameInput').value.trim();
+  if(!name){
+    document.getElementById('playerNameInput').style.borderColor='#FF3860';
+    setTimeout(()=>document.getElementById('playerNameInput').style.borderColor='',1000);
+    return;
+  }
+  profile = createDefaultProfile(name, window._selectedAvatar||AVATARS[0]);
+  saveProfile();
+  updateMenuUI();
+  AudioEngine.levelUp();
+  showScreen('mainMenu');
+}
+
+// ======================== MENU UI ========================
+function updateMenuUI() {
+  if(!profile) return;
+  document.getElementById('menuAvatar').textContent = profile.avatar;
+  document.getElementById('menuName').textContent = profile.name;
+  const rank = getRank(profile.xp);
+  const rankBadge = document.getElementById('menuRankBadge');
+  rankBadge.textContent = rank.icon + ' ' + rank.name;
+  rankBadge.style.background = rank.color + '33';
+  rankBadge.style.color = rank.color;
+  rankBadge.style.border = '1px solid ' + rank.color + '66';
+  const nextRankIdx = RANKS.findIndex(r=>r.name===rank.name)+1;
+  const nextRank = RANKS[nextRankIdx];
+  const curMin = rank.minXp;
+  const nextMin = nextRank ? nextRank.minXp : rank.minXp+100;
+  const pct = Math.min(100,((profile.xp-curMin)/(nextMin-curMin))*100);
+  document.getElementById('menuXpBar').style.width = pct+'%';
+  document.getElementById('menuXpText').textContent = `${profile.xp} XP • Nível ${profile.level}`;
+  document.getElementById('menuWins').textContent = profile.wins;
+  document.getElementById('menuAccuracy').textContent = getAccuracy()+'%';
+  document.getElementById('menuXp').textContent = profile.xp;
+}
+
+// ======================== QUIZ START ========================
+function startQuiz(diff) {
+  AudioEngine.click();
+  quizState.diff = diff;
+  const pool = [...QUESTIONS[diff]];
+  // Shuffle
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  quizState.questions = pool;
+  quizState.current = 0;
+  quizState.correct = 0;
+  quizState.wrong = 0;
+  quizState.xpGained = 0;
+  quizState.combo = 0;
+  quizState.maxCombo = 0;
+  quizState.answered = false;
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizState.questions[quizState.current];
+  const total = quizState.questions.length;
+  quizState.answered = false;
+  // Progress
+  document.getElementById('quizProgressBar').style.width = ((quizState.current/total)*100)+'%';
+  document.getElementById('quizCounter').textContent = `${quizState.current+1}/${total}`;
+  document.getElementById('quizXpBadge').textContent = `⭐ ${quizState.xpGained} XP`;
+  // Combo
+  const comboEl = document.getElementById('quizCombo');
+  if(quizState.combo>=2){
+    comboEl.textContent = `🔥 x${quizState.combo} COMBO!`;
+    comboEl.classList.add('show');
+  } else { comboEl.classList.remove('show'); }
+  // Difficulty tag
+  const tag = document.getElementById('questionDiffTag');
+  tag.className = 'question-diff-tag tag-'+quizState.diff;
+  tag.textContent = quizState.diff==='easy'?'FÁCIL':quizState.diff==='medium'?'MÉDIO':'DIFÍCIL';
+  // Question
+  document.getElementById('questionText').textContent = q.q;
+  // Options
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  const letters = ['A','B','C','D','E'];
+  q.opts.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<div class="option-letter">${letters[i]}</div><div class="option-text">${opt}</div>`;
+    btn.onclick = ()=>selectAnswer(i, btn);
+    grid.appendChild(btn);
+  });
+  // Next btn
+  document.getElementById('nextBtn').classList.remove('show');
+  // Timer
+  clearInterval(quizState.timerInterval);
+  if(settings.timer) startTimer();
+  else document.getElementById('quizTimer').textContent = '⏱ OFF';
+}
+
+function startTimer() {
+  quizState.timerVal = 30;
+  const el = document.getElementById('quizTimer');
+  el.textContent = '⏱ 30s';
+  quizState.timerInterval = setInterval(()=>{
+    quizState.timerVal--;
+    el.textContent = `⏱ ${quizState.timerVal}s`;
+    if(quizState.timerVal<=0){
+      clearInterval(quizState.timerInterval);
+      if(!quizState.answered) autoWrong();
+    }
+  },1000);
+}
+
+function autoWrong() {
+  quizState.answered = true;
+  quizState.wrong++;
+  quizState.combo = 0;
+  const q = quizState.questions[quizState.current];
+  const btns = document.querySelectorAll('#optionsGrid .option-btn');
+  btns.forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q.a) btn.classList.add('correct');
+  });
+  AudioEngine.wrong();
+  document.getElementById('nextBtn').classList.add('show');
+  profile.totalAnswered++;
+  saveProfile();
+}
+
+function selectAnswer(idx, btn) {
+  if(quizState.answered) return;
+  quizState.answered = true;
+  clearInterval(quizState.timerInterval);
+  const q = quizState.questions[quizState.current];
+  const btns = document.querySelectorAll('#optionsGrid .option-btn');
+  btns.forEach(b=>b.disabled=true);
+  profile.totalAnswered++;
+  if(idx===q.a){
+    btn.classList.add('correct');
+    quizState.correct++;
+    quizState.combo++;
+    quizState.xpGained += 10 + (quizState.combo>1 ? (quizState.combo-1)*2 : 0);
+    quizState.maxCombo = Math.max(quizState.maxCombo, quizState.combo);
+    profile.totalCorrect++;
+    AudioEngine.correct();
+    showXpFloat(btn, `+${10+(quizState.combo>1?(quizState.combo-1)*2:0)} XP`);
+  } else {
+    btn.classList.add('wrong');
+    btns[q.a].classList.add('correct');
+    quizState.wrong++;
+    quizState.combo = 0;
+    AudioEngine.wrong();
+    if(settings.anim) shakeScreen();
+  }
+  document.getElementById('quizXpBadge').textContent = `⭐ ${quizState.xpGained} XP`;
+  document.getElementById('nextBtn').classList.add('show');
+  saveProfile();
+}
+
+function nextQuestion() {
+  quizState.current++;
+  if(quizState.current >= quizState.questions.length) {
+    endQuiz();
+  } else {
+    renderQuestion();
+  }
+}
+
+function endQuiz() {
+  clearInterval(quizState.timerInterval);
+  const total = quizState.questions.length;
+  const pct = Math.round((quizState.correct/total)*100);
+  // Update profile
+  const prevXp = profile.xp;
+  profile.xp += quizState.xpGained;
+  profile.level = Math.floor(profile.xp/100)+1;
+  profile.maxCombo = Math.max(profile.maxCombo||0, quizState.maxCombo);
+  if(quizState.correct > quizState.wrong) profile.wins++;
+  else profile.losses++;
+  profile.history.unshift({
+    diff: quizState.diff,
+    correct: quizState.correct,
+    total: total,
+    pct: pct,
+    xp: quizState.xpGained,
+    date: new Date().toLocaleDateString('pt-BR')
+  });
+  if(profile.history.length>20) profile.history.length=20;
+  // Check level up
+  const newLevel = Math.floor(profile.xp/100)+1;
+  const prevLevel = Math.floor(prevXp/100)+1;
+  saveProfile();
+  checkAchievements();
+  // Show result
+  document.getElementById('resultPct').textContent = pct+'%';
+  const titles = {100:'🏆 PERFEITO!',easy:'😊 Bom Trabalho!',medium:'⚡ Ótimo!',hard:'🔥 Incrível!'};
+  document.getElementById('resultTitle').textContent = pct===100?'🏆 PERFEITO!':pct>=80?'⚡ Excelente!':pct>=60?'👍 Bom Trabalho!':'💪 Continue Tentando!';
+  document.getElementById('resultSubtitle').textContent = `Você completou o quiz ${quizState.diff==='easy'?'Fácil':quizState.diff==='medium'?'Médio':'Difícil'}`;
+  document.getElementById('resCorrect').textContent = quizState.correct;
+  document.getElementById('resWrong').textContent = quizState.wrong;
+  document.getElementById('resXp').textContent = '+'+quizState.xpGained;
+  document.getElementById('resCombo').textContent = quizState.maxCombo;
+  showScreen('resultScreen');
+  if(settings.anim && pct===100) spawnFireworks();
+  if(newLevel>prevLevel) showLevelUp(newLevel);
+  // Check legend unlock
+  if(profile.xp>=1000 && !profile.legendSeen) {
+    profile.legendSeen = true;
+    saveProfile();
+    setTimeout(()=>showLegendQuestion(),1500);
+  }
+  // Save to ranking
+  saveToRanking();
+}
+
+function confirmQuit() {
+  showModal('Sair do Quiz','Tem certeza? Seu progresso nesta rodada será perdido.',()=>{
+    clearInterval(quizState.timerInterval);
+    showScreen('mainMenu');
+  });
+}
+
+function shakeScreen() {
+  const gw = document.getElementById('gameWrapper');
+  gw.classList.add('shake');
+  setTimeout(()=>gw.classList.remove('shake'),500);
+}
+
+// ======================== XP FLOAT ========================
+function showXpFloat(btn, text) {
+  if(!settings.anim) return;
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = text;
+  const rect = btn.getBoundingClientRect();
+  el.style.left = rect.left + rect.width/2 + 'px';
+  el.style.top = rect.top + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1500);
+}
+
+// ======================== LEVEL UP ========================
+function showLevelUp(level) {
+  AudioEngine.levelUp();
+  const overlay = document.createElement('div');
+  overlay.className = 'levelup-overlay';
+  overlay.innerHTML = `
+    <div class="levelup-stars">⭐⭐⭐</div>
+    <div class="levelup-text">LEVEL UP!</div>
+    <div style="font-size:56px;font-weight:900;color:var(--gold)">${level}</div>
+    <div style="color:var(--text-dim)">Parabéns, você subiu de nível!</div>
+    <button class="btn-primary" style="margin-top:10px;width:200px" onclick="this.parentElement.remove()">🎉 INCRÍVEL!</button>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(()=>{ if(overlay.parentElement) overlay.remove(); },5000);
+}
+
+// ======================== LEGEND QUESTION ========================
+function showLegendQuestion() {
+  AudioEngine.epic();
+  const overlay = document.createElement('div');
+  overlay.className = 'legend-overlay';
+  overlay.id = 'legendOverlay';
+  let answered = false;
+  const lq = LEGEND_QUESTION;
+  const letters = ['A','B','C','D','E'];
+  const optsHtml = lq.opts.map((o,i)=>`
+    <button class="legend-opt" onclick="answerLegend(${i},this)" id="lopt${i}">
+      <span class="legend-opt-letter">${letters[i]}</span>${o}
+    </button>
+  `).join('');
+  overlay.innerHTML = `
+    <div class="legend-icon">💎</div>
+    <div class="legend-title">Somente uma LENDA ABSOLUTA de Brawl Stars saberá responder isso.</div>
+    <div class="legend-question">${lq.q}</div>
+    <div class="legend-options">${optsHtml}</div>
+  `;
+  document.body.appendChild(overlay);
+  if(settings.anim) shakeScreen();
+}
+
+function answerLegend(idx, btn) {
+  const lq = LEGEND_QUESTION;
+  const overlay = document.getElementById('legendOverlay');
+  overlay.querySelectorAll('.legend-opt').forEach(b=>b.disabled=true);
+  const letters = ['A','B','C','D','E'];
+  let correct = idx===lq.a;
+  if(correct){
+    btn.classList.add('correct');
+    profile.legendCorrect = true;
+    profile.xp += 100;
+    profile.level = Math.floor(profile.xp/100)+1;
+    saveProfile();
+    checkAchievements();
+    AudioEngine.epic();
+    setTimeout(()=>{
+      overlay.innerHTML = `
+        <div style="font-size:80px;animation:iconFloat 2s ease-in-out infinite">💎</div>
+        <div class="legend-result-title legend-result-correct">LENDA ABSOLUTA!</div>
+        <div style="color:var(--text-dim);font-size:14px;line-height:1.6;text-align:center">${lq.explanation}</div>
+        <div style="font-size:32px;color:var(--gold);font-weight:900">+100 XP BÔNUS!</div>
+        <button class="btn-primary" style="width:280px" onclick="this.parentElement.remove()">💎 RECEBER TÍTULO</button>
+      `;
+      if(settings.anim) spawnFireworks();
+    },600);
+  } else {
+    btn.classList.add('wrong');
+    document.getElementById('lopt'+lq.a).classList.add('correct');
+    AudioEngine.wrong();
+    setTimeout(()=>{
+      overlay.innerHTML = `
+        <div style="font-size:60px">😔</div>
+        <div class="legend-result-title" style="color:#FF3860">Não desta vez...</div>
+        <div style="color:var(--text-dim);font-size:14px;line-height:1.6;text-align:center">${lq.explanation}</div>
+        <div style="font-size:13px;color:var(--text-dim)">Continue jogando para tentar novamente!</div>
+        <button class="btn-secondary" onclick="this.parentElement.remove()">Continuar</button>
+      `;
+    },800);
+  }
+}
+
+// ======================== FIREWORKS ========================
+function spawnFireworks() {
+  const colors = ['#FFD700','#FF6B35','#FF3860','#00D4FF','#9B59B6','#2ECC71'];
+  for(let i=0;i<20;i++){
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.className = 'firework';
+      const size = Math.random()*20+10;
+      el.style.cssText = `
+        width:${size}px;height:${size}px;
+        left:${Math.random()*100}%;top:${Math.random()*60+20}%;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        box-shadow:0 0 ${size}px ${colors[Math.floor(Math.random()*colors.length)]};
+      `;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),1000);
+    },i*80);
+  }
+}
+
+// ======================== ACHIEVEMENTS ========================
+function checkAchievements() {
+  if(!profile) return;
+  ACHIEVEMENTS_LIST.forEach(ach=>{
+    if(!profile.achievements.includes(ach.id) && ach.cond(profile)) {
+      profile.achievements.push(ach.id);
+      saveProfile();
+      showAchievementPopup(ach);
+    }
+  });
+}
+
+function showAchievementPopup(ach) {
+  const popup = document.getElementById('achPopup');
+  document.getElementById('achPopupIcon').textContent = ach.icon;
+  document.getElementById('achPopupName').textContent = ach.name;
+  popup.classList.add('show');
+  AudioEngine.correct();
+  setTimeout(()=>popup.classList.remove('show'),3500);
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achievementsGrid');
+  grid.innerHTML = '';
+  ACHIEVEMENTS_LIST.forEach(ach=>{
+    const unlocked = profile && profile.achievements.includes(ach.id);
+    const card = document.createElement('div');
+    card.className = 'ach-card '+(unlocked?'unlocked':'locked');
+    card.innerHTML = `
+      <div class="ach-card-icon">${ach.icon}</div>
+      <div class="ach-card-name">${ach.name}</div>
+      <div class="ach-card-desc">${ach.desc}</div>
+      ${unlocked?'<div style="font-size:10px;color:var(--gold);margin-top:4px">✅ DESBLOQUEADA</div>':''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ======================== RANKING ========================
+function saveToRanking() {
+  if(!profile) return;
+  const rankings = JSON.parse(localStorage.getItem('brawlQuizRanking')||'[]');
+  const existing = rankings.findIndex(r=>r.name===profile.name);
+  const entry = {name:profile.name, avatar:profile.avatar, xp:profile.xp, accuracy:getAccuracy(), wins:profile.wins};
+  if(existing>=0) rankings[existing]=entry; else rankings.push(entry);
+  rankings.sort((a,b)=>b.xp-a.xp);
+  rankings.splice(20,999);
+  localStorage.setItem('brawlQuizRanking',JSON.stringify(rankings));
+}
+
+function renderRanking() {
+  const content = document.getElementById('rankingContent');
+  const rankings = JSON.parse(localStorage.getItem('brawlQuizRanking')||'[]');
+  content.innerHTML = '';
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.textContent = 'MAIORES XP DESTE DISPOSITIVO';
+  content.appendChild(title);
+  if(rankings.length===0){
+    content.innerHTML += '<div style="color:var(--text-dim);text-align:center;padding:40px 0">Nenhum jogador ainda. Jogue para aparecer aqui!</div>';
+    return;
+  }
+  rankings.forEach((r,i)=>{
+    const item = document.createElement('div');
+    item.className = 'ranking-item';
+    const numClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
+    item.innerHTML = `
+      <div class="rank-num ${numClass}">${i+1}</div>
+      <div style="font-size:24px">${r.avatar}</div>
+      <div class="ranking-name">${r.name}</div>
+      <div>
+        <div class="ranking-xp">⭐ ${r.xp}</div>
+        <div style="font-size:10px;color:var(--text-dim)">${r.accuracy}% precisão</div>
+      </div>
+    `;
+    content.appendChild(item);
+  });
+}
+
+// ======================== PROFILE SCREEN ========================
+function showProfileScreen() {
+  showScreen('profileScreen');
+  const content = document.getElementById('profileContent');
+  const rank = getRank(profile.xp);
+  content.innerHTML = `
+    <div style="text-align:center">
+      <div class="profile-big-avatar">${profile.avatar}</div>
+      <div style="font-size:22px;font-weight:900;margin-top:12px">${profile.name}</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:20px;background:${rank.color}33;color:${rank.color};border:1px solid ${rank.color}66;font-weight:700;font-size:14px;margin-top:6px">${rank.icon} ${rank.name}</div>
+    </div>
+    <div class="section-title">ESTATÍSTICAS</div>
+    <div class="profile-stats-grid">
+      <div class="profile-stat-card"><div class="profile-stat-label">XP Total</div><div class="profile-stat-val" style="color:var(--gold)">⭐ ${profile.xp}</div></div>
+      <div class="profile-stat-card"><div class="profile-stat-label">Nível</div><div class="profile-stat-val">${profile.level}</div></div>
+      <div class="profile-stat-card"><div class="profile-stat-label">Vitórias</div><div class="profile-stat-val" style="color:#2ECC71">🏆 ${profile.wins}</div></div>
+      <div class="profile-stat-card"><div class="profile-stat-label">Derrotas</div><div class="profile-stat-val" style="color:#FF3860">💀 ${profile.losses}</div></div>
+      <div class="profile-stat-card"><div class="profile-stat-label">Precisão</div><div class="profile-stat-val" style="color:var(--cyan)">🎯 ${getAccuracy()}%</div></div>
+      <div class="profile-stat-card"><div class="profile-stat-label">Maior Combo</div><div class="profile-stat-val" style="color:var(--orange)">🔥 x${profile.maxCombo||0}</div></div>
+    </div>
+    <div class="section-title">HISTÓRICO (ÚLTIMAS ${Math.min(profile.history.length,10)} PARTIDAS)</div>
+    ${profile.history.slice(0,10).map(h=>`
+      <div class="history-item">
+        <div>
+          <div class="history-diff" style="color:${h.diff==='easy'?'#2ECC71':h.diff==='medium'?'#FFD700':'#FF3860'}">${h.diff==='easy'?'🟢 FÁCIL':h.diff==='medium'?'🟡 MÉDIO':'🔴 DIFÍCIL'}</div>
+          <div class="history-date">${h.date}</div>
+        </div>
+        <div class="history-score">${h.correct}/${h.total} — ${h.pct}%</div>
+        <div style="font-size:12px;color:var(--gold)">+${h.xp} XP</div>
+      </div>
+    `).join('')||'<div style="color:var(--text-dim);text-align:center;padding:20px">Nenhuma partida ainda. Jogue para ver o histórico!</div>'}
+    <div class="section-title">CONTA</div>
+    <button class="btn-danger" style="width:100%" onclick="confirmResetProfile()">🔄 Trocar Perfil</button>
+  `;
+}
+
+// ======================== SETTINGS UI ========================
+function updateSettingsUI() {
+  ['sound','anim','timer'].forEach(key=>{
+    const el = document.getElementById('toggle'+key.charAt(0).toUpperCase()+key.slice(1));
+    if(el) el.className = 'toggle' + (settings[key]?' on':'');
+  });
+}
+
+function toggleSetting(key) {
+  settings[key] = !settings[key];
+  saveSettings();
+  updateSettingsUI();
+  AudioEngine.enabled = settings.sound;
+}
+
+// ======================== MODAL ========================
+function showModal(title, text, onConfirm) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  const btn = document.getElementById('modalConfirmBtn');
+  btn.onclick = ()=>{ closeModal(); onConfirm(); };
+  document.getElementById('modalOverlay').style.display='flex';
+}
+function closeModal() { document.getElementById('modalOverlay').style.display='none'; }
+
+function confirmResetProfile() {
+  showModal('Trocar Perfil','Seu perfil atual será apagado. Deseja criar um novo?',()=>{
+    profile = null;
+    localStorage.removeItem('brawlQuizProfile');
+    showScreen('profileSetup');
+    buildAvatarGrid();
+  });
+}
+
+function confirmResetAll() {
+  showModal('RESETAR TUDO','Todos os dados, incluindo ranking e perfil, serão apagados permanentemente. Tem certeza ABSOLUTA?',()=>{
+    localStorage.clear();
+    profile = null;
+    showScreen('profileSetup');
+    buildAvatarGrid();
+  });
+}
+
+// ======================== MINIGAME 1 — QUICK CHOICE ========================
+const MG1_BRAWLERS = BRAWLERS_UNIQUE.slice(0,20);
+let mg1State = {score:0,combo:1,active:false,timerInterval:null,timerVal:15,round:0};
+
+function startMg1() {
+  mg1State = {score:0,combo:1,active:true,timerInterval:null,timerVal:15,round:0};
+  document.getElementById('mg1Result').style.display='none';
+  document.getElementById('mg1Question').style.display='block';
+  document.getElementById('mg1Options').style.display='grid';
+  document.querySelector('.mg1-timer-bar').style.display='block';
+  if(profile){ profile.minigamesPlayed=(profile.minigamesPlayed||0)+1; saveProfile(); }
+  checkAchievements();
+  nextMg1Round();
+}
+
+function nextMg1Round() {
+  if(mg1State.round>=15){
+    endMg1();return;
+  }
+  mg1State.round++;
+  mg1State.timerVal = Math.max(6, 15-Math.floor(mg1State.round/3));
+  clearInterval(mg1State.timerInterval);
+  // Pick correct brawler and 3 wrong
+  const shuffled = [...MG1_BRAWLERS].sort(()=>Math.random()-0.5);
+  const correct = shuffled[0];
+  const wrongs = shuffled.slice(1,3);
+  const all = [correct,...wrongs].sort(()=>Math.random()-0.5);
+  const questions = ['Qual brawler é o '+correct.emoji+'?','Qual é o nome deste brawler: '+correct.emoji,'Quem tem o super "'+correct.super+'"?'];
+  const qIdx = Math.floor(Math.random()*questions.length);
+  document.getElementById('mg1Question').textContent = questions[qIdx];
+  const opts = document.getElementById('mg1Options');
+  opts.innerHTML = '';
+  all.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='mg1-opt';
+    btn.innerHTML=`<div>${b.emoji}</div><div class="mg1-opt-name">${b.name}</div>`;
+    btn.onclick=()=>selectMg1(b.name===correct.name,btn,opts);
+    opts.appendChild(btn);
+  });
+  // Timer
+  updateMg1TimerBar(1);
+  mg1State.timerInterval = setInterval(()=>{
+    mg1State.timerVal--;
+    updateMg1TimerBar(mg1State.timerVal / Math.max(6,15-Math.floor(mg1State.round/3)));
+    if(mg1State.timerVal<=0){
+      clearInterval(mg1State.timerInterval);
+      opts.querySelectorAll('button').forEach(b=>b.disabled=true);
+      mg1State.combo=1;
+      document.getElementById('mg1ScoreLabel').textContent=`PONTOS • Combo: x${mg1State.combo}`;
+      AudioEngine.wrong();
+      setTimeout(nextMg1Round,800);
+    }
+  },1000);
+  updateMg1Score();
+}
+
+function updateMg1TimerBar(pct) {
+  document.getElementById('mg1TimerFill').style.width=(pct*100)+'%';
+}
+
+function selectMg1(isCorrect, btn, opts) {
+  clearInterval(mg1State.timerInterval);
+  opts.querySelectorAll('button').forEach(b=>b.disabled=true);
+  if(isCorrect){
+    btn.classList.add('correct');
+    mg1State.score += 10*mg1State.combo;
+    mg1State.combo = Math.min(mg1State.combo+1,5);
+    AudioEngine.correct();
+  } else {
+    btn.classList.add('wrong');
+    mg1State.combo=1;
+    AudioEngine.wrong();
+  }
+  updateMg1Score();
+  setTimeout(nextMg1Round,600);
+}
+
+function updateMg1Score() {
+  document.getElementById('mg1Score').textContent = mg1State.score;
+  document.getElementById('mg1ScoreLabel').textContent = `PONTOS • Combo: x${mg1State.combo}`;
+}
+
+function endMg1() {
+  document.getElementById('mg1Question').style.display='none';
+  document.getElementById('mg1Options').style.display='none';
+  document.querySelector('.mg1-timer-bar').style.display='none';
+  document.getElementById('mg1FinalScore').textContent = mg1State.score;
+  document.getElementById('mg1Result').style.display='block';
+  if(profile){ profile.xp+=(mg1State.score/10); profile.level=Math.floor(profile.xp/100)+1; saveProfile(); }
+}
+
+// ======================== MINIGAME 2 — BATTLE ========================
+const MG2_BRAWLERS = BRAWLERS_UNIQUE.slice(0,20);
+let mg2State = {score:0,streak:0,active:false,rounds:0,answered:false};
+let mg2Current = {b1:null,b2:null,category:'',correctIdx:0};
+
+function startMg2() {
+  mg2State={score:0,streak:0,active:true,rounds:0,answered:false};
+  document.getElementById('mg2Result').style.display='none';
+  document.getElementById('vsBrawler1').style.display='flex';
+  document.getElementById('vsBrawler2').style.display='flex';
+  document.querySelector('.battle-question').style.display='block';
+  document.querySelector('.vs-sep').style.display='block';
+  nextMg2Round();
+}
+
+function nextMg2Round() {
+  if(mg2State.rounds>=12){ endMg2(); return; }
+  mg2State.rounds++;
+  mg2State.answered=false;
+  const shuffled=[...MG2_BRAWLERS].sort(()=>Math.random()-0.5);
+  const b1=shuffled[0], b2=shuffled[1];
+  const cats=[
+    {label:'Quem tem MAIS HP?',key:'hp',dir:1},
+    {label:'Quem causa MAIS DANO?',key:'damage',dir:1},
+  ];
+  const cat=cats[Math.floor(Math.random()*cats.length)];
+  let v1=typeof b1[cat.key]==='number'?b1[cat.key]:0;
+  let v2=typeof b2[cat.key]==='number'?b2[cat.key]:0;
+  while(v1===v2){const s=[...MG2_BRAWLERS].sort(()=>Math.random()-0.5);b2.hp=s[1].hp;}
+  const correctIdx = v1*cat.dir >= v2*cat.dir ? 0 : 1;
+  mg2Current={b1,b2,cat,v1,v2,correctIdx};
+  document.getElementById('battleQuestion').textContent=cat.label;
+  document.getElementById('vs1Emoji').textContent=b1.emoji;
+  document.getElementById('vs1Name').textContent=b1.name;
+  document.getElementById('vs1Stat').textContent=cat.key==='hp'?`HP: ???`:`Dano: ???`;
+  document.getElementById('vs2Emoji').textContent=b2.emoji;
+  document.getElementById('vs2Name').textContent=b2.name;
+  document.getElementById('vs2Stat').textContent=cat.key==='hp'?`HP: ???`:`Dano: ???`;
+  document.getElementById('vsBrawler1').className='vs-brawler';
+  document.getElementById('vsBrawler2').className='vs-brawler';
+  document.getElementById('mg2ScoreLabel').textContent=`PONTOS • Streak: ${mg2State.streak}`;
+  document.getElementById('mg2Score').textContent=mg2State.score;
+}
+
+function selectVs(idx) {
+  if(mg2State.answered)return;
+  mg2State.answered=true;
+  const {b1,b2,cat,v1,v2,correctIdx}=mg2Current;
+  const b1el=document.getElementById('vsBrawler1');
+  const b2el=document.getElementById('vsBrawler2');
+  b1el.disabled=true;b2el.disabled=true;
+  document.getElementById('vs1Stat').textContent=cat.key==='hp'?`HP: ${v1}`:`Dano: ${v1}`;
+  document.getElementById('vs2Stat').textContent=cat.key==='hp'?`HP: ${v2}`:`Dano: ${v2}`;
+  if(idx===correctIdx){
+    (idx===0?b1el:b2el).classList.add('winner');
+    (idx===0?b2el:b1el).classList.add('loser');
+    mg2State.streak++;mg2State.score+=10*Math.max(1,mg2State.streak);
+    AudioEngine.correct();
+  } else {
+    (idx===0?b1el:b2el).classList.add('loser');
+    (idx===0?b2el:b1el).classList.add('winner');
+    mg2State.streak=0;AudioEngine.wrong();
+  }
+  document.getElementById('mg2Score').textContent=mg2State.score;
+  document.getElementById('mg2ScoreLabel').textContent=`PONTOS • Streak: ${mg2State.streak}`;
+  setTimeout(nextMg2Round,1000);
+}
+
+function endMg2() {
+  document.getElementById('vsBrawler1').style.display='none';
+  document.getElementById('vsBrawler2').style.display='none';
+  document.querySelector('.battle-question').style.display='none';
+  document.querySelector('.vs-sep').style.display='none';
+  document.getElementById('mg2FinalScore').textContent=mg2State.score;
+  document.getElementById('mg2Result').style.display='block';
+  if(profile){ profile.xp+=(mg2State.score/10); saveProfile(); }
+}
+
+// ======================== MINIGAME 3 — MEMORY ========================
+const MG3_BRAWLERS = BRAWLERS_UNIQUE.slice(0,8);
+let mg3State = {pairs:0,moves:0,timer:60,timerInterval:null,flipped:[],matched:[],active:false};
+let mg3Cards = [];
+
+function startMg3() {
+  mg3State={pairs:0,moves:0,timer:60,timerInterval:null,flipped:[],matched:[],active:true};
+  document.getElementById('mg3Result').style.display='none';
+  document.getElementById('memoryGrid').style.display='grid';
+  const emojis = MG3_BRAWLERS.map(b=>b.emoji);
+  mg3Cards = [...emojis,...emojis].sort(()=>Math.random()-0.5);
+  renderMemoryGrid();
+  clearInterval(mg3State.timerInterval);
+  mg3State.timerInterval = setInterval(()=>{
+    mg3State.timer--;
+    document.getElementById('mg3Timer').textContent=mg3State.timer;
+    if(mg3State.timer<=0){ clearInterval(mg3State.timerInterval); endMg3(); }
+  },1000);
+}
+
+function renderMemoryGrid() {
+  const grid=document.getElementById('memoryGrid');
+  grid.innerHTML='';
+  mg3Cards.forEach((emoji,i)=>{
+    const card=document.createElement('div');
+    card.className='memory-card';
+    card.dataset.idx=i;card.dataset.emoji=emoji;
+    card.innerHTML=`<span style="position:relative;z-index:1">${emoji}</span>`;
+    card.onclick=()=>flipMemoryCard(card,i,emoji);
+    grid.appendChild(card);
+  });
+  updateMg3UI();
+}
+
+function flipMemoryCard(card, idx, emoji) {
+  if(!mg3State.active)return;
+  if(mg3State.matched.includes(idx))return;
+  if(mg3State.flipped.length===2)return;
+  if(mg3State.flipped.includes(idx))return;
+  card.classList.add('revealed','flipped');
+  mg3State.flipped.push(idx);
+  if(mg3State.flipped.length===2){
+    mg3State.moves++;
+    const [i1,i2]=mg3State.flipped;
+    if(mg3Cards[i1]===mg3Cards[i2]){
+      mg3State.matched.push(i1,i2);
+      mg3State.pairs++;
+      document.querySelectorAll('#memoryGrid .memory-card').forEach(c=>{
+        if(mg3State.matched.includes(parseInt(c.dataset.idx))) c.classList.add('matched');
+      });
+      AudioEngine.correct();
+      mg3State.flipped=[];
+      updateMg3UI();
+      if(mg3State.pairs===MG3_BRAWLERS.length){ clearInterval(mg3State.timerInterval); setTimeout(endMg3,500); }
+    } else {
+      AudioEngine.wrong();
+      setTimeout(()=>{
+        document.querySelectorAll('#memoryGrid .memory-card').forEach(c=>{
+          if(!mg3State.matched.includes(parseInt(c.dataset.idx))){ c.classList.remove('revealed','flipped'); }
+        });
+        mg3State.flipped=[];
+        updateMg3UI();
+      },700);
+    }
+  } else { updateMg3UI(); }
+}
+
+function updateMg3UI() {
+  document.getElementById('mg3Score').textContent=mg3State.pairs;
+  document.getElementById('mg3Moves').textContent=mg3State.moves;
+}
+
+function endMg3() {
+  mg3State.active=false;
+  clearInterval(mg3State.timerInterval);
+  document.getElementById('memoryGrid').style.display='none';
+  document.getElementById('mg3FinalScore').textContent=mg3State.pairs+'/'+MG3_BRAWLERS.length;
+  document.getElementById('mg3Result').style.display='block';
+  if(profile){ profile.xp+=mg3State.pairs*15; profile.minigamesPlayed=(profile.minigamesPlayed||0)+1; saveProfile(); }
+}
+
+// ======================== INIT ========================
+window.addEventListener('load',()=>{
+  AudioEngine.init();
+  loadProfile();
+  loadSettings();
+  buildAvatarGrid();
+  createParticles();
+  updateSettingsUI();
+  // Resume audio context on interaction
+  document.addEventListener('touchstart',()=>{if(AudioEngine.ctx&&AudioEngine.ctx.state==='suspended')AudioEngine.ctx.resume();},{once:true});
+  document.addEventListener('click',()=>{if(AudioEngine.ctx&&AudioEngine.ctx.state==='suspended')AudioEngine.ctx.resume();},{once:true});
+  setTimeout(runLoading,300);
+});
+</script>
+</body>
+</html>
